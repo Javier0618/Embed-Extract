@@ -3,7 +3,7 @@
   functions = "functions"
 
 [functions]
-  external_node_modules = ["serverless-http"]
+  external_node_modules = ["serverless-http", "@sparticuz/chromium"]
 
 [[redirects]]
   from = "/api/*"
