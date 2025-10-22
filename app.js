@@ -11,13 +11,12 @@ puppeteerExtra.use(StealthPlugin());
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public'))); // Sirve index.html desde public/
+app.use(express.static(path.join(__dirname, 'public')));
 
 let stopExtractionFlag = false;
 
-const TMDB_API_KEY = '32e5e53999e380a0291d66fb304153fe'; // Usa process.env en producción
+const TMDB_API_KEY = process.env.TMDB_API_KEY || '32e5e53999e380a0291d66fb304153fe';
 
-// Función equivalente a get_imdb_id_from_tmdb
 async function getImdbIdFromTmdb(tmdbId, isSeries) {
   console.log(`--- [DEBUG] Buscando IMDB ID para TMDB ID: ${tmdbId} (Es serie: ${isSeries}) ---`);
   const mediaType = isSeries ? 'tv' : 'movie';
@@ -33,7 +32,6 @@ async function getImdbIdFromTmdb(tmdbId, isSeries) {
   }
 }
 
-// Función equivalente a get_series_info_from_tmdb
 async function getSeriesInfoFromTmdb(tmdbId) {
   console.log(`--- [DEBUG] Buscando info de episodios para TMDB ID: ${tmdbId} ---`);
   const url = `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${TMDB_API_KEY}&language=es-ES`;
@@ -54,14 +52,15 @@ async function getSeriesInfoFromTmdb(tmdbId) {
   }
 }
 
-// Función equivalente a extract_links_from_page (con Puppeteer)
 async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT') {
   console.log(`--- [DEBUG] Extrayendo enlaces de: ${url} (Idioma: ${videoLanguage}) ---`);
-  const puppeteer = puppeteerExtra; // Con stealth
+  const puppeteer = puppeteerExtra;
   const browser = await puppeteer.launch({
     args: chromium.args,
     defaultViewport: chromium.defaultViewport,
-    executablePath: await chromium.executablePath(),
+    executablePath: process.env.NETLIFY
+      ? '/opt/build/repo/node_modules/@sparticuz/chromium/bin'
+      : await chromium.executablePath(),
     headless: chromium.headless,
     ignoreHTTPSErrors: true,
   });
@@ -70,7 +69,6 @@ async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT'
   try {
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000 });
 
-    // Verificar si página no existe
     const pageSource = (await page.content()).toLowerCase();
     if (pageSource.includes('not found') || pageSource.includes('404') || pageSource.includes('no existe')) {
       console.log(`--- [DEBUG] Página no encontrada (404): ${url} ---`);
@@ -78,14 +76,12 @@ async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT'
       return null;
     }
 
-    // Esperar dataLink
     await page.waitForFunction(() => typeof dataLink !== 'undefined' && dataLink.length > 0, { timeout: 20000 });
     console.log(`--- [DEBUG] dataLink encontrado en ${url} ---`);
 
     const encryptedData = await page.evaluate(() => dataLink);
     console.log(`--- [DEBUG] encrypted_data (crudo): ${JSON.stringify(encryptedData)} ---`);
 
-    // Procesar serversToExtract
     let targetServers = [];
     if (serversToExtract) {
       if (typeof serversToExtract === 'string') {
@@ -96,7 +92,6 @@ async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT'
     }
     console.log(`--- [DEBUG] Servidores objetivo: ${targetServers} ---`);
 
-    // Procesar enlaces directos
     for (const langData of encryptedData) {
       const currentLanguage = langData.video_language || '';
       if (videoLanguage && currentLanguage !== videoLanguage) continue;
@@ -125,7 +120,6 @@ async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT'
 
     console.log('--- [DEBUG] No se encontraron enlaces directos, intentando descifrar... ---');
 
-    // Preparar para descifrado
     const encryptedLinks = [];
     const linkMap = [];
     for (const langData of encryptedData) {
@@ -151,7 +145,6 @@ async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT'
       return [];
     }
 
-    // Ejecutar descifrado
     const result = await page.evaluate((encryptedLinks) => {
       if (typeof decryptLinks === 'undefined') return { error: 'decryptLinks function not found' };
       return decryptLinks(encryptedLinks);
@@ -191,19 +184,16 @@ async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT'
   }
 }
 
-// Función equivalente a get_tmdb_data
 async function getTmdbData(tmdbId, isSeries, language = 'es-ES') {
   console.log(`--- [DEBUG] Extrayendo datos de TMDB para ID: ${tmdbId} (Es serie: ${isSeries}, Idioma: ${language}) ---`);
   const mediaType = isSeries ? 'tv' : 'movie';
   const baseUrl = `https://api.themoviedb.org/3/${mediaType}/${tmdbId}`;
 
   try {
-    // Info básica
     const infoUrl = `${baseUrl}?api_key=${TMDB_API_KEY}&language=${language}`;
     const infoResponse = await axios.get(infoUrl);
     const description = infoResponse.data.overview || 'No hay descripción disponible';
 
-    // Imágenes
     const imagesUrl = `${baseUrl}/images?api_key=${TMDB_API_KEY}&include_image_language=${language},null`;
     const imagesResponse = await axios.get(imagesUrl);
     const posters = imagesResponse.data.posters.map(p => `https://image.tmdb.org/t/p/original${p.file_path}`);
@@ -244,10 +234,9 @@ async function getTmdbData(tmdbId, isSeries, language = 'es-ES') {
   }
 }
 
-// Función equivalente a process_links_by_server
 function processLinksByServer(links) {
   if (!links || !links.length) return [];
-  if (links[0].server) return links; // Ya procesado
+  if (links[0].server) return links;
 
   return links.map(link => ({
     server: 'Desconocido',
@@ -256,19 +245,16 @@ function processLinksByServer(links) {
   }));
 }
 
-// Ruta /
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Ruta /stop_extraction
 app.post('/stop_extraction', (req, res) => {
   stopExtractionFlag = true;
   console.log('--- [DEBUG] STOP EXTRACTION solicitado por el usuario ---');
   res.json({ status: 'success', message: 'Detención solicitada' });
 });
 
-// Ruta /extract
 app.post('/extract', async (req, res) => {
   stopExtractionFlag = false;
   console.log('\n========= NUEVA PETICIÓN DE EXTRACCIÓN =========');
@@ -290,27 +276,44 @@ app.post('/extract', async (req, res) => {
     const seriesData = await getSeriesInfoFromTmdb(tmdb_id);
     if (!seriesData) return res.json({ status: 'error', message: 'No se pudo obtener la información de los episodios.' });
 
-    // Lógica para diferentes modos (specific, full_season, season_range) - similar al Python
-    // Implementa loops con checks para stopExtractionFlag
-    // Por brevedad, aquí un esqueleto; expande con tu lógica exacta
     if (extraction_mode === 'specific') {
-      // ... (maneja episode específico, temporada específica o todas)
-      // Ejemplo para todas:
-      for (const seasonInfo of seriesData) {
+      const seasonNum = parseInt(season);
+      const episodeNum = parseInt(episode);
+      const episodeUrl = `https://embed69.org/f/${imdbId}-${seasonNum}x${episodeNum.toString().padStart(2, '0')}/`;
+      const links = await extractLinksFromPage(episodeUrl, serversToExtract, video_language);
+      if (links === null) unavailableSeasons.push(seasonNum);
+      else finalResults[`Temporada ${seasonNum} Episodio ${episodeNum}`] = processLinksByServer(links);
+    } else if (extraction_mode === 'full_season') {
+      const seasonNum = parseInt(season);
+      const seasonInfo = seriesData.find(s => s.season === seasonNum);
+      if (!seasonInfo) return res.json({ status: 'error', message: 'Temporada no encontrada.' });
+      for (let ep = 1; ep <= seasonInfo.episodes; ep++) {
         if (stopExtractionFlag) {
-          // Retorna parcial
           return res.json({ status: 'stopped', message: 'Extracción detenida.', data: finalResults });
         }
-        const seasonNum = seasonInfo.season;
-        const episodeUrl = `https://embed69.org/f/${imdbId}-${seasonNum}x01/`; // Ejemplo
+        const episodeUrl = `https://embed69.org/f/${imdbId}-${seasonNum}x${ep.toString().padStart(2, '0')}/`;
         const links = await extractLinksFromPage(episodeUrl, serversToExtract, video_language);
         if (links === null) unavailableSeasons.push(seasonNum);
-        // Procesa y agrega a finalResults
+        else finalResults[`Temporada ${seasonNum} Episodio ${ep}`] = processLinksByServer(links);
+      }
+    } else if (extraction_mode === 'season_range') {
+      const start = parseInt(season_start);
+      const end = parseInt(season_end);
+      for (const seasonInfo of seriesData) {
+        const seasonNum = seasonInfo.season;
+        if (seasonNum < start || seasonNum > end) continue;
+        for (let ep = 1; ep <= seasonInfo.episodes; ep++) {
+          if (stopExtractionFlag) {
+            return res.json({ status: 'stopped', message: 'Extracción detenida.', data: finalResults });
+          }
+          const episodeUrl = `https://embed69.org/f/${imdbId}-${seasonNum}x${ep.toString().padStart(2, '0')}/`;
+          const links = await extractLinksFromPage(episodeUrl, serversToExtract, video_language);
+          if (links === null) unavailableSeasons.push(seasonNum);
+          else finalResults[`Temporada ${seasonNum} Episodio ${ep}`] = processLinksByServer(links);
+        }
       }
     }
-    // Similar para otros modos
   } else {
-    // Modo película
     const movieUrl = `https://embed69.org/f/${imdbId}/`;
     const links = await extractLinksFromPage(movieUrl, serversToExtract, video_language);
     if (links === null) return res.json({ status: 'error', message: 'Esta película no está disponible.' });
@@ -322,7 +325,6 @@ app.post('/extract', async (req, res) => {
   res.json(responseData);
 });
 
-// Ruta /extract_tmdb
 app.post('/extract_tmdb', async (req, res) => {
   console.log('\n========= NUEVA PETICIÓN DE EXTRACCIÓN TMDB =========');
   const { tmdb_id, type, language = 'es-ES' } = req.body;
@@ -336,7 +338,6 @@ app.post('/extract_tmdb', async (req, res) => {
   res.json({ status: 'success', data: tmdbData, is_series: isSeries });
 });
 
-// Ruta /search_tmdb
 app.get('/search_tmdb', async (req, res) => {
   const { query, type = 'multi' } = req.query;
   if (!query || query.length < 2) return res.json({ status: 'success', results: [] });
@@ -375,4 +376,4 @@ if (require.main === module) {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
 
-module.exports = app; // Exporta para serverless
+module.exports = app;
