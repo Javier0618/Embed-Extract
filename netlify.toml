@@ -1,6 +1,9 @@
 [build]
-  publish = "public"  # Carpeta para static files
-  functions = "functions"  # Carpeta para functions
+  publish = "public"
+  functions = "functions"
+
+[functions]
+  external_node_modules = ["serverless-http"]
 
 [[redirects]]
   from = "/api/*"
