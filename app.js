@@ -22,12 +22,12 @@ async function getImdbIdFromTmdb(tmdbId, isSeries) {
   const mediaType = isSeries ? 'tv' : 'movie';
   const url = `https://api.themoviedb.org/3/${mediaType}/${tmdbId}/external_ids?api_key=${TMDB_API_KEY}`;
   try {
-    const response = await axios.get(url);
+    const response = await axios.get(url, { timeout: 10000 });
     const imdbId = response.data.imdb_id;
     console.log(`--- [DEBUG] Respuesta de TMDB (IMDB): ${imdbId} ---`);
     return imdbId;
   } catch (e) {
-    console.error(`--- [DEBUG] ERROR consultando TMDB para IMDB: ${e} ---`);
+    console.error(`--- [DEBUG] ERROR consultando TMDB para IMDB: ${e.message} ---`);
     return null;
   }
 }
@@ -36,7 +36,7 @@ async function getSeriesInfoFromTmdb(tmdbId) {
   console.log(`--- [DEBUG] Buscando info de episodios para TMDB ID: ${tmdbId} ---`);
   const url = `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${TMDB_API_KEY}&language=es-ES`;
   try {
-    const response = await axios.get(url);
+    const response = await axios.get(url, { timeout: 10000 });
     const data = response.data;
     const seriesStructure = data.seasons
       .filter(season => season.season_number > 0)
@@ -47,7 +47,7 @@ async function getSeriesInfoFromTmdb(tmdbId) {
     console.log(`--- [DEBUG] Estructura de series encontrada: ${JSON.stringify(seriesStructure)} ---`);
     return seriesStructure;
   } catch (e) {
-    console.error(`--- [DEBUG] ERROR consultando TMDB para episodios: ${e} ---`);
+    console.error(`--- [DEBUG] ERROR consultando TMDB para episodios: ${e.message} ---`);
     return null;
   }
 }
@@ -58,15 +58,34 @@ async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT'
   let browser = null;
   try {
     browser = await puppeteer.launch({
-      args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-web-security', '--disable-features=IsolateOrigins,site-per-process'],
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: 'shell',
+      args: [
+        ...chromium.args,
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-web-security',
+        '--disable-features=IsolateOrigins,site-per-process',
+        '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
+      ],
+      defaultViewport: { width: 1280, height: 720 },
+      executablePath: process.env.NETLIFY
+        ? '/opt/build/repo/node_modules/@sparticuz/chromium/bin'
+        : await chromium.executablePath(),
+      headless: 'new',
       ignoreHTTPSErrors: true,
-      dumpio: true  // For extra logs
+      timeout: 60000
     });
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 }); // Increased timeout
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      if (['image', 'stylesheet', 'font'].includes(req.resourceType())) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
 
     const pageSource = (await page.content()).toLowerCase();
     if (pageSource.includes('not found') || pageSource.includes('404') || pageSource.includes('no existe')) {
@@ -74,7 +93,7 @@ async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT'
       return null;
     }
 
-    await page.waitForFunction(() => typeof dataLink !== 'undefined' && dataLink.length > 0, { timeout: 30000 });
+    await page.waitForFunction(() => typeof dataLink !== 'undefined' && dataLink.length > 0, { timeout: 60000 });
     console.log(`--- [DEBUG] dataLink encontrado en ${url} ---`);
 
     const encryptedData = await page.evaluate(() => dataLink);
@@ -137,7 +156,7 @@ async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT'
       }
     }
 
-    console.log(`--- [DEBUG] Enlaces cifrados a descifrar: ${encryptedLinks.length}. ---`);
+    console.log(`--- [DEBUG] Enlaces cifrados a descifrar: ${encryptedLinks.length} ---`);
     if (!encryptedLinks.length) {
       return [];
     }
@@ -173,20 +192,18 @@ async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT'
     console.log(`--- [DEBUG] Enlaces finales extraídos para ${url}: ${JSON.stringify(foundLinks)} ---`);
     return foundLinks;
   } catch (e) {
-    console.error(`--- [DEBUG] ERROR extrayendo de ${url}: ${e} ---`);
+    console.error(`--- [DEBUG] ERROR extrayendo de ${url}: ${e.message} ---`);
     return null;
   } finally {
     if (browser) {
       const pages = await browser.pages();
       for (const page of pages) {
-        await page.close();
+        await page.close().catch(() => {});
       }
-      await Promise.race([browser.close(), browser.close(), browser.close()]);
+      await browser.close().catch(() => {});
     }
   }
 }
-
-// Resto del código permanece igual, no lo repito por brevedad. Asegúrate de copiar el resto desde la versión anterior.
 
 async function getTmdbData(tmdbId, isSeries, language = 'es-ES') {
   console.log(`--- [DEBUG] Extrayendo datos de TMDB para ID: ${tmdbId} (Es serie: ${isSeries}, Idioma: ${language}) ---`);
@@ -195,11 +212,11 @@ async function getTmdbData(tmdbId, isSeries, language = 'es-ES') {
 
   try {
     const infoUrl = `${baseUrl}?api_key=${TMDB_API_KEY}&language=${language}`;
-    const infoResponse = await axios.get(infoUrl);
+    const infoResponse = await axios.get(infoUrl, { timeout: 10000 });
     const description = infoResponse.data.overview || 'No hay descripción disponible';
 
     const imagesUrl = `${baseUrl}/images?api_key=${TMDB_API_KEY}&include_image_language=${language},null`;
-    const imagesResponse = await axios.get(imagesUrl);
+    const imagesResponse = await axios.get(imagesUrl, { timeout: 10000 });
     const posters = imagesResponse.data.posters.map(p => `https://image.tmdb.org/t/p/original${p.file_path}`);
     const backdrops = imagesResponse.data.backdrops.map(b => `https://image.tmdb.org/t/p/original${b.file_path}`);
 
@@ -212,7 +229,7 @@ async function getTmdbData(tmdbId, isSeries, language = 'es-ES') {
         for (const seasonInfo of seriesInfo) {
           const seasonNum = seasonInfo.season;
           const seasonUrl = `${baseUrl}/season/${seasonNum}?api_key=${TMDB_API_KEY}&language=${language}`;
-          const seasonResponse = await axios.get(seasonUrl);
+          const seasonResponse = await axios.get(seasonUrl, { timeout: 10000 });
           if (seasonResponse.status === 200) {
             const seasonData = seasonResponse.data;
             const seasonKey = `Temporada ${seasonNum}`;
@@ -233,7 +250,7 @@ async function getTmdbData(tmdbId, isSeries, language = 'es-ES') {
     console.log(`--- [DEBUG] Datos TMDB extraídos: ${posters.length} posters, ${backdrops.length} backdrops ---`);
     return result;
   } catch (e) {
-    console.error(`--- [DEBUG] ERROR consultando TMDB para datos: ${e} ---`);
+    console.error(`--- [DEBUG] ERROR consultando TMDB para datos: ${e.message} ---`);
     return null;
   }
 }
@@ -283,7 +300,7 @@ app.post('/extract', async (req, res) => {
     if (extraction_mode === 'specific') {
       const seasonNum = parseInt(season);
       const episodeNum = parseInt(episode);
-      const episodeUrl = `https://embed69.org/f/${imdbId}-${seasonNum}x${episodeNum.toString().padStart(2, '0')}/`;
+      const episodeUrl = `https://embed69.com/f/${imdbId}-${seasonNum}x${episodeNum.toString().padStart(2, '0')}/`;
       const links = await extractLinksFromPage(episodeUrl, serversToExtract, video_language);
       if (links === null) unavailableSeasons.push(seasonNum);
       else finalResults[`Temporada ${seasonNum} Episodio ${episodeNum}`] = processLinksByServer(links);
@@ -295,7 +312,7 @@ app.post('/extract', async (req, res) => {
         if (stopExtractionFlag) {
           return res.json({ status: 'stopped', message: 'Extracción detenida.', data: finalResults });
         }
-        const episodeUrl = `https://embed69.org/f/${imdbId}-${seasonNum}x${ep.toString().padStart(2, '0')}/`;
+        const episodeUrl = `https://embed69.com/f/${imdbId}-${seasonNum}x${ep.toString().padStart(2, '0')}/`;
         const links = await extractLinksFromPage(episodeUrl, serversToExtract, video_language);
         if (links === null) unavailableSeasons.push(seasonNum);
         else finalResults[`Temporada ${seasonNum} Episodio ${ep}`] = processLinksByServer(links);
@@ -310,7 +327,7 @@ app.post('/extract', async (req, res) => {
           if (stopExtractionFlag) {
             return res.json({ status: 'stopped', message: 'Extracción detenida.', data: finalResults });
           }
-          const episodeUrl = `https://embed69.org/f/${imdbId}-${seasonNum}x${ep.toString().padStart(2, '0')}/`;
+          const episodeUrl = `https://embed69.com/f/${imdbId}-${seasonNum}x${ep.toString().padStart(2, '0')}/`;
           const links = await extractLinksFromPage(episodeUrl, serversToExtract, video_language);
           if (links === null) unavailableSeasons.push(seasonNum);
           else finalResults[`Temporada ${seasonNum} Episodio ${ep}`] = processLinksByServer(links);
@@ -318,7 +335,7 @@ app.post('/extract', async (req, res) => {
       }
     }
   } else {
-    const movieUrl = `https://embed69.org/f/${imdbId}/`;
+    const movieUrl = `https://embed69.com/f/${imdbId}/`;
     const links = await extractLinksFromPage(movieUrl, serversToExtract, video_language);
     if (links === null) return res.json({ status: 'error', message: 'Esta película no está disponible.' });
     finalResults['Película'] = processLinksByServer(links);
@@ -352,7 +369,7 @@ app.get('/search_tmdb', async (req, res) => {
   else url = `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&language=es-ES&query=${query}&page=1`;
 
   try {
-    const response = await axios.get(url);
+    const response = await axios.get(url, { timeout: 10000 });
     const data = response.data;
     const results = data.results.slice(0, 10).filter(item => item.media_type !== 'person').map(item => {
       const mediaTypeResult = item.media_type || (type !== 'multi' ? type : 'movie');
@@ -370,7 +387,7 @@ app.get('/search_tmdb', async (req, res) => {
     });
     res.json({ status: 'success', results });
   } catch (e) {
-    console.error(`--- [DEBUG] ERROR EN BÚSQUEDA TMDB: ${e} ---`);
+    console.error(`--- [DEBUG] ERROR EN BÚSQUEDA TMDB: ${e.message} ---`);
     res.json({ status: 'error', message: e.message });
   }
 });
