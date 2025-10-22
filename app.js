@@ -55,28 +55,26 @@ async function getSeriesInfoFromTmdb(tmdbId) {
 async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT') {
   console.log(`--- [DEBUG] Extrayendo enlaces de: ${url} (Idioma: ${videoLanguage}) ---`);
   const puppeteer = puppeteerExtra;
-  const browser = await puppeteer.launch({
-    args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath: process.env.NETLIFY
-      ? '/opt/build/repo/node_modules/@sparticuz/chromium/bin'
-      : await chromium.executablePath(),
-    headless: chromium.headless,
-    ignoreHTTPSErrors: true,
-  });
-  const page = await browser.newPage();
-  let foundLinks = [];
+  let browser = null;
   try {
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000 });
+    browser = await puppeteer.launch({
+      args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-web-security', '--disable-features=IsolateOrigins,site-per-process'],
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: 'shell',
+      ignoreHTTPSErrors: true,
+      dumpio: true  // For extra logs
+    });
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 }); // Increased timeout
 
     const pageSource = (await page.content()).toLowerCase();
     if (pageSource.includes('not found') || pageSource.includes('404') || pageSource.includes('no existe')) {
       console.log(`--- [DEBUG] Página no encontrada (404): ${url} ---`);
-      await browser.close();
       return null;
     }
 
-    await page.waitForFunction(() => typeof dataLink !== 'undefined' && dataLink.length > 0, { timeout: 20000 });
+    await page.waitForFunction(() => typeof dataLink !== 'undefined' && dataLink.length > 0, { timeout: 30000 });
     console.log(`--- [DEBUG] dataLink encontrado en ${url} ---`);
 
     const encryptedData = await page.evaluate(() => dataLink);
@@ -92,6 +90,7 @@ async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT'
     }
     console.log(`--- [DEBUG] Servidores objetivo: ${targetServers} ---`);
 
+    let foundLinks = [];
     for (const langData of encryptedData) {
       const currentLanguage = langData.video_language || '';
       if (videoLanguage && currentLanguage !== videoLanguage) continue;
@@ -114,7 +113,6 @@ async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT'
 
     if (foundLinks.length) {
       console.log(`--- [DEBUG] Enlaces finales extraídos para ${url}: ${JSON.stringify(foundLinks)} ---`);
-      await browser.close();
       return foundLinks;
     }
 
@@ -141,7 +139,6 @@ async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT'
 
     console.log(`--- [DEBUG] Enlaces cifrados a descifrar: ${encryptedLinks.length}. ---`);
     if (!encryptedLinks.length) {
-      await browser.close();
       return [];
     }
 
@@ -154,7 +151,6 @@ async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT'
 
     if (!result || result.error || !Array.isArray(result) || !result.length) {
       console.error('--- [DEBUG] ERROR en descifrado ---');
-      await browser.close();
       return [];
     }
 
@@ -175,14 +171,22 @@ async function extractLinksFromPage(url, serversToExtract, videoLanguage = 'LAT'
     });
 
     console.log(`--- [DEBUG] Enlaces finales extraídos para ${url}: ${JSON.stringify(foundLinks)} ---`);
-    await browser.close();
     return foundLinks;
   } catch (e) {
     console.error(`--- [DEBUG] ERROR extrayendo de ${url}: ${e} ---`);
-    await browser.close();
     return null;
+  } finally {
+    if (browser) {
+      const pages = await browser.pages();
+      for (const page of pages) {
+        await page.close();
+      }
+      await Promise.race([browser.close(), browser.close(), browser.close()]);
+    }
   }
 }
+
+// Resto del código permanece igual, no lo repito por brevedad. Asegúrate de copiar el resto desde la versión anterior.
 
 async function getTmdbData(tmdbId, isSeries, language = 'es-ES') {
   console.log(`--- [DEBUG] Extrayendo datos de TMDB para ID: ${tmdbId} (Es serie: ${isSeries}, Idioma: ${language}) ---`);
