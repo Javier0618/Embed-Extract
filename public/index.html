@@ -1,0 +1,2225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scraper - Link Embed - TMDB</title>
+    <style>
+        /* Nuevo diseño con gradiente púrpura y estilo moderno */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #7c3aed 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+        
+        /* Header con estilo de la imagen */
+        .header {
+            background: linear-gradient(90deg, #7c3aed 0%, #764ba2 100%);
+            padding: 1.5rem 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: linear-gradient(to bottom, rgba(124, 58, 237, 0.8), rgba(124, 58, 237, 0.4), transparent);
+            z-index: 1;
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+        
+        .header-icon {
+            font-size: 2.5rem;
+        }
+        
+        .header p {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 1rem;
+            margin: 0;
+        }
+        
+        .header a {
+            color: white;
+            text-decoration: underline;
+        }
+        
+        /* Contenedor principal */
+        .main-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .container { 
+            background: white;
+            padding: 2.5rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .search-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .search-icon {
+            font-size: 1.5rem;
+        }
+        
+        .search-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0;
+        }
+        
+        .search-description {
+            color: #6b7280;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+        
+        .form-group { 
+            margin-bottom: 1.5rem;
+        }
+        
+        label { 
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.95rem;
+        }
+        
+        input[type="text"], select { 
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.2s;
+            background: #f9fafb;
+        }
+        
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #7c3aed;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+        
+        .content-type-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .content-type-group label {
+            flex: 1;
+            margin: 0;
+        }
+        
+        .content-type-group select {
+            padding: 0.875rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            background: #f9fafb;
+            cursor: pointer;
+        }
+        
+        /* Nuevos estilos para opciones de extracción de series */
+        .extraction-options {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: #f9fafb;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+            display: none; /* Oculto por defecto, se muestra solo para series */
+        }
+        
+        .extraction-options.visible {
+            display: block;
+        }
+        
+        .extraction-options h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        
+        .radio-option:hover {
+            background: white;
+        }
+        
+        .radio-option input[type="radio"], .radio-option input[type="checkbox"] {
+            margin-top: 0.25rem;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #7c3aed;
+        }
+        
+        .radio-option label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 400;
+            color: #374151;
+            flex: 1;
+        }
+        
+        .season-episode-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .season-range-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .field-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .field-group label {
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            color: #6b7280;
+        }
+        
+        .field-group input {
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        
+        /* Sección de proveedores */
+        .providers-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid #f3f4f6;
+        }
+        
+        .providers-section h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        
+        .providers-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .provider-tab {
+            padding: 0.5rem 1.25rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+        
+        .provider-tab.active {
+            background: #1f2937;
+            color: white;
+            border-color: #1f2937;
+        }
+        
+        .providers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .provider-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .provider-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #7c3aed;
+        }
+        
+        .provider-checkbox label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 400;
+            color: #4b5563;
+        }
+        
+        .provider-note {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 8px;
+            color: #6b7280;
+            font-size: 0.875rem;
+            font-style: italic;
+        }
+        
+        button { 
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        #results { 
+            margin-top: 2rem;
+        }
+        
+        .result-block { 
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .result-block h3 { 
+            margin: 0 0 1rem 0;
+            color: #7c3aed;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .result-block h4 {
+            margin: 1rem 0 0.5rem 0;
+            color: #4b5563;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .result-block ol { 
+            padding-left: 20px;
+            margin: 0.5rem 0;
+        }
+        
+        .result-block li {
+            margin: 0.5rem 0;
+            line-height: 1.6;
+        }
+        
+        .result-block a {
+            color: #7c3aed;
+            text-decoration: none;
+            word-break: break-all;
+        }
+        
+        .result-block a:hover {
+            text-decoration: underline;
+        }
+        
+        .loading { 
+            text-align: center;
+            color: #6b7280;
+            font-size: 1.125rem;
+            padding: 2rem;
+        }
+        
+        .error { 
+            color: #dc2626;
+            text-align: center;
+            padding: 1rem;
+            background: #fee2e2;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        
+        /* Added styles for stop button */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .button-group button {
+            flex: 1;
+            margin: 0;
+        }
+        
+        #stopButton {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+            display: none;
+        }
+        
+        #stopButton:hover {
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+        }
+        
+        #stopButton.visible {
+            display: block;
+        }
+        
+        #extractButton.extracting {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .stopped-message {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stopped-message h3 {
+            color: #d97706;
+            margin: 0 0 0.5rem 0;
+            font-size: 1.25rem;
+        }
+        
+        .stopped-message p {
+            color: #92400e;
+            margin: 0;
+        }
+        
+        /* Added styles for main tabs system */
+        .main-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e5e7eb;
+            position: relative;
+        }
+        
+        .main-tab {
+            padding: 1rem 2rem;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #6b7280;
+            transition: all 0.2s;
+            margin: 0;
+            width: auto;
+            box-shadow: none;
+            position: relative;
+        }
+        
+        .main-tab:hover {
+            color: #7c3aed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .main-tab.active {
+            color: #7c3aed;
+            border-bottom-color: #7c3aed;
+        }
+        
+        .main-tab::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            background: linear-gradient(90deg, #7c3aed, #764ba2);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .main-tab.active::after {
+            transform: scaleX(1);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Added styles for TMDB scraper interface */
+        .tmdb-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .tmdb-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .action-button {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0;
+            width: auto;
+            box-shadow: none;
+        }
+        
+        .action-button:hover {
+            background: #f9fafb;
+            border-color: #7c3aed;
+            color: #7c3aed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .description-section {
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .description-section h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        
+        .description-text {
+            color: #4b5563;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        
+        .sub-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e5e7eb;
+            position: relative;
+        }
+        
+        .sub-tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #6b7280;
+            transition: all 0.2s;
+            margin: 0;
+            width: auto;
+            box-shadow: none;
+            position: relative;
+        }
+        
+        .sub-tab:hover {
+            color: #7c3aed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .sub-tab.active {
+            color: #7c3aed;
+            border-bottom-color: #7c3aed;
+        }
+        
+        .sub-tab::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #7c3aed, #764ba2);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .sub-tab.active::after {
+            transform: scaleX(1);
+        }
+        
+        .sub-tab-content {
+            display: none;
+        }
+        
+        .sub-tab-content.active {
+            display: block;
+        }
+        
+        .images-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .images-count {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .copy-all-button {
+            padding: 0.5rem 1rem;
+            background: #1f2937;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0;
+            width: auto;
+            box-shadow: none;
+        }
+        
+        .copy-all-button:hover {
+            background: #374151;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .image-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+        
+        .image-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+        
+        .image-wrapper {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            background: #f3f4f6;
+        }
+        
+        .image-wrapper.poster {
+            aspect-ratio: 9 / 16;
+        }
+        
+        .image-wrapper.backdrop {
+            aspect-ratio: 16 / 9;
+        }
+        
+        .image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .image-actions {
+            padding: 0.75rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .image-button {
+            flex: 1;
+            padding: 0.5rem;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #374151;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            margin: 0;
+            width: auto;
+            box-shadow: none;
+        }
+        
+        .image-button:hover {
+            background: #7c3aed;
+            color: white;
+            border-color: #7c3aed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .episode-images-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .season-section {
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .season-section h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        
+        .episode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .episode-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .episode-image {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            background: #e5e7eb;
+        }
+        
+        .episode-info {
+            padding: 0.75rem;
+        }
+        
+        .episode-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .episode-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .tmdb-loading {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+        
+        .tmdb-error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #9ca3af;
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Added styles for search autocomplete */
+        .search-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-input-wrapper {
+            position: relative;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-results.visible {
+            display: block;
+        }
+        
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .search-result-item:hover {
+            background: #f9fafb;
+        }
+        
+        .search-result-poster {
+            width: 40px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            background: #e5e7eb;
+            flex-shrink: 0;
+        }
+        
+        .search-result-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .search-result-title {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .search-result-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        
+        .search-result-badge {
+            padding: 0.125rem 0.5rem;
+            background: #7c3aed;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .search-loading {
+            padding: 1rem;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .search-empty {
+            padding: 1rem;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+        
+        /* Added styles for copy all links button */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-radius: 12px;
+        }
+        
+        .results-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0;
+        }
+        
+        .copy-all-links-button {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .copy-all-links-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Added styles for image modal */
+        .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        
+        .image-modal.visible {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0;
+        }
+        
+        .modal-close {
+            background: #f3f4f6;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: #6b7280;
+            padding: 0;
+            margin: 0;
+            box-shadow: none;
+        }
+        
+        .modal-close:hover {
+            background: #e5e7eb;
+            color: #1f2937;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .modal-body {
+            flex: 1;
+            overflow: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .modal-image {
+            max-width: 100%;
+            max-height: 60vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        
+        .modal-url-section {
+            width: 100%;
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .modal-url-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .modal-url-container {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .modal-url-text {
+            flex: 1;
+            padding: 0.75rem;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            color: #374151;
+            word-break: break-all;
+            font-family: monospace;
+        }
+        
+        .modal-copy-button {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            margin: 0;
+            width: auto;
+        }
+        
+        .modal-copy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.75rem;
+            }
+            
+            .container {
+                padding: 1.5rem;
+            }
+            
+            .providers-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .season-episode-fields,
+            .season-range-fields {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .main-tabs {
+                overflow-x: auto;
+            }
+            
+            .main-tab {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .images-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .episode-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .results-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+            
+            .copy-all-links-button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            /* Added responsive styles for modal */
+            .image-modal {
+                padding: 1rem;
+            }
+            
+            .modal-content {
+                max-width: 100%;
+                max-height: 100%;
+            }
+            
+            .modal-url-container {
+                flex-direction: column;
+            }
+            
+            .modal-copy-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Nuevo header con diseño de la imagen -->
+<div class="header">
+    <h1>
+        <span class="header-icon">📁</span>
+        Scraper - Link Embed - TMDB
+    </h1>
+    <p>Extrae enlaces y obtén imágenes de TheMovieDB by: <a href="https://StreamFusion.top" target="_blank">StreamFusion.top</a></p>
+</div>
+
+<div class="main-container">
+    <div class="container">
+        <!-- Added main tabs system -->
+        <div class="main-tabs">
+            <button class="main-tab active" data-tab="links">📁 Extracción de Links</button>
+            <button class="main-tab" data-tab="tmdb">🎬 TMDB Scraper</button>
+        </div>
+        
+        <!-- Links extraction tab (existing content) -->
+        <div class="tab-content active" id="linksTab">
+            <!-- Nueva sección de búsqueda con diseño mejorado -->
+            <div class="search-header">
+                <span class="search-icon">🔍</span>
+                <h2>Buscar Contenido</h2>
+            </div>
+            <p class="search-description">Busca por nombre o ingresa el ID de TMDB directamente</p>
+            
+            <form id="extractForm">
+                <!-- Added search by name functionality -->
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <input type="text" id="search_name" placeholder="Buscar por nombre (ej: Inception, Breaking Bad)">
+                        <div class="search-results" id="searchResults"></div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="tmdb_id">O ingresa el ID de TMDB:</label>
+                    <input type="text" id="tmdb_id" name="tmdb_id" placeholder="Ej: 12345" required>
+                </div>
+                
+                <div class="content-type-group">
+                    <label>
+                        <select name="type" id="type">
+                            <option value="movie">Película</option>
+                            <option value="series">Serie</option>
+                        </select>
+                    </label>
+                </div>
+                
+                <!-- Added language selector for video extraction -->
+                <div class="form-group">
+                    <label for="video_language">Idioma de los enlaces:</label>
+                    <select name="video_language" id="video_language">
+                        <option value="LAT" selected>Latino (LAT)</option>
+                        <option value="ESP">Español (ESP)</option>
+                        <option value="SUB">Subtitulado (SUB)</option>
+                    </select>
+                </div>
+                
+                <!-- Updated extraction options structure -->
+                <div class="extraction-options" id="extractionOptions">
+                    <!-- Season and episode fields now visible by default -->
+                    <div class="season-episode-fields" id="specificFields">
+                        <div class="field-group">
+                            <label for="season">Temporada (opcional)</label>
+                            <input type="number" id="season" name="season" placeholder="ej: 1" min="1">
+                        </div>
+                        <div class="field-group">
+                            <label for="episode">Episodio (opcional)</label>
+                            <input type="number" id="episode" name="episode" placeholder="ej: 1" min="1">
+                        </div>
+                    </div>
+                    
+                    <h3>Opciones de extracción:</h3>
+                    
+                    <!-- Changed first option to "Extraer serie completa" -->
+                    <div class="radio-option">
+                        <input type="checkbox" id="extract_full_series" name="extract_full_series">
+                        <label for="extract_full_series">Extraer serie completa (todas las temporadas y episodios)</label>
+                    </div>
+                    
+                    <div class="radio-option">
+                        <input type="radio" id="mode_season" name="extraction_mode" value="full_season">
+                        <label for="mode_season">Extraer temporada completa (todos los episodios de la temporada seleccionada)</label>
+                    </div>
+                    
+                    <div class="radio-option">
+                        <input type="radio" id="mode_range" name="extraction_mode" value="season_range">
+                        <label for="mode_range">Extraer rango de temporadas (ej: temporadas 1-3, 5-7)</label>
+                    </div>
+                    
+                    <!-- Campos para rango de temporadas -->
+                    <div class="season-range-fields" id="rangeFields" style="display: none;">
+                        <div class="field-group">
+                            <label for="season_start">Temporada inicial</label>
+                            <input type="number" id="season_start" name="season_start" placeholder="ej: 1" min="1">
+                        </div>
+                        <div class="field-group">
+                            <label for="season_end">Temporada final</label>
+                            <input type="number" id="season_end" name="season_end" placeholder="ej: 3" min="1">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección de proveedores actualizada con solo 4 opciones -->
+                <div class="providers-section">
+                    <h3>Filtrar por Proveedores:</h3>
+                    
+                    <div class="providers-tabs">
+                        <button type="button" class="provider-tab active" data-filter="all">Todos</button>
+                        <button type="button" class="provider-tab" data-filter="none">Ninguno</button>
+                    </div>
+                    
+                    <div class="providers-grid">
+                        <div class="provider-checkbox">
+                            <input type="checkbox" id="vidhide" name="provider" value="vidhide">
+                            <label for="vidhide">VidHide</label>
+                        </div>
+                        <div class="provider-checkbox">
+                            <input type="checkbox" id="streamwish" name="provider" value="streamwish">
+                            <label for="streamwish">StreamWish</label>
+                        </div>
+                        <div class="provider-checkbox">
+                            <input type="checkbox" id="filemoon" name="provider" value="filemoon">
+                            <label for="filemoon">Filemoon</label>
+                        </div>
+                        <div class="provider-checkbox">
+                            <input type="checkbox" id="voe" name="provider" value="voe">
+                            <label for="voe">Voe</label>
+                        </div>
+                    </div>
+                    
+                    <div class="provider-note">
+                        Sin filtros - se extraerán enlaces de todos los proveedores
+                    </div>
+                </div>
+                
+                <!-- Modified button structure to include stop button -->
+                <div class="button-group">
+                    <button type="submit" id="extractButton">Extraer</button>
+                    <button type="button" id="stopButton">Detener Extracción</button>
+                </div>
+            </form>
+
+            <div id="results">
+                <!-- Los resultados aparecerán aquí -->
+            </div>
+        </div>
+        
+        <!-- TMDB Scraper tab (new content) -->
+        <div class="tab-content" id="tmdbTab">
+            <div class="search-header">
+                <span class="search-icon">🎬</span>
+                <h2>TMDB Scraper</h2>
+            </div>
+            <p class="search-description">Busca por nombre o ingresa el ID de TMDB para extraer imágenes y metadatos</p>
+            
+            <form id="tmdbForm">
+                <!-- Added search by name functionality for TMDB tab -->
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <input type="text" id="search_name_tmdb" placeholder="Buscar por nombre (ej: Inception, Breaking Bad)">
+                        <div class="search-results" id="searchResultsTmdb"></div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="tmdb_id_scraper">O ingresa el ID de TMDB:</label>
+                    <input type="text" id="tmdb_id_scraper" name="tmdb_id" placeholder="Ej: 12345" required>
+                </div>
+                
+                <div class="content-type-group">
+                    <label>
+                        <select name="type" id="type_scraper">
+                            <option value="movie">Película</option>
+                            <option value="series">Serie</option>
+                        </select>
+                    </label>
+                </div>
+                
+                <!-- Added language selector for TMDB data -->
+                <div class="form-group">
+                    <label for="tmdb_language">Idioma de los datos:</label>
+                    <select name="language" id="tmdb_language">
+                        <option value="es-MX" selected>Español Latino (es-MX)</option>
+                        <option value="es-ES">Español España (es-ES)</option>
+                        <option value="en-US">Inglés (en-US)</option>
+                        <option value="pt-BR">Portugués Brasil (pt-BR)</option>
+                        <option value="fr-FR">Francés (fr-FR)</option>
+                    </select>
+                </div>
+                
+                <button type="submit" id="tmdbExtractButton">Extraer Datos de TMDB</button>
+            </form>
+            
+            <div id="tmdbResults">
+                <!-- TMDB results will appear here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Added image modal -->
+<div class="image-modal" id="imageModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">🖼️ Vista de Imagen</h3>
+            <button class="modal-close" onclick="closeImageModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <img id="modalImage" class="modal-image" src="/placeholder.svg" alt="Imagen">
+            <div class="modal-url-section">
+                <label class="modal-url-label">URL de la imagen:</label>
+                <div class="modal-url-container">
+                    <div class="modal-url-text" id="modalUrl"></div>
+                    <button class="modal-copy-button" onclick="copyModalUrl()">
+                        📋 Copiar URL
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const typeSelect = document.getElementById('type');
+    const extractionOptions = document.getElementById('extractionOptions');
+    const specificFields = document.getElementById('specificFields');
+    const rangeFields = document.getElementById('rangeFields');
+    const extractionModes = document.querySelectorAll('input[name="extraction_mode"]');
+    const extractFullSeriesCheckbox = document.getElementById('extract_full_series');
+    const seasonInput = document.getElementById('season');
+    const episodeInput = document.getElementById('episode');
+    
+    // Show/hide extraction options based on type
+    typeSelect.addEventListener('change', () => {
+        if (typeSelect.value === 'series') {
+            extractionOptions.classList.add('visible');
+        } else {
+            extractionOptions.classList.remove('visible');
+        }
+    });
+    
+    extractFullSeriesCheckbox.addEventListener('change', () => {
+        if (extractFullSeriesCheckbox.checked) {
+            // Hide season/episode inputs and disable other options
+            specificFields.style.display = 'none';
+            rangeFields.style.display = 'none';
+            extractionModes.forEach(radio => {
+                radio.checked = false;
+                radio.disabled = true;
+            });
+            // Clear input values
+            seasonInput.value = '';
+            episodeInput.value = '';
+        } else {
+            // Show season/episode inputs and enable other options
+            specificFields.style.display = 'grid';
+            extractionModes.forEach(radio => {
+                radio.disabled = false;
+            });
+        }
+    });
+    
+    extractionModes.forEach(radio => {
+        radio.addEventListener('change', () => {
+            if (radio.checked) {
+                extractFullSeriesCheckbox.checked = false;
+                const mode = radio.value;
+                
+                if (mode === 'full_season') {
+                    // Full season mode: only show season
+                    specificFields.style.display = 'grid';
+                    rangeFields.style.display = 'none';
+                    seasonInput.placeholder = 'ej: 1 (requerido)';
+                    episodeInput.placeholder = 'No aplica';
+                    episodeInput.disabled = true;
+                    episodeInput.value = '';
+                } else if (mode === 'season_range') {
+                    // Season range mode: show range fields
+                    specificFields.style.display = 'none';
+                    rangeFields.style.display = 'grid';
+                    episodeInput.disabled = false;
+                }
+            }
+        });
+    });
+    
+    const providerTabs = document.querySelectorAll('.provider-tab');
+    const providerCheckboxes = document.querySelectorAll('input[name="provider"]');
+    
+    providerTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            providerTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            const filter = tab.dataset.filter;
+            if (filter === 'all') {
+                providerCheckboxes.forEach(cb => cb.checked = true);
+            } else if (filter === 'none') {
+                providerCheckboxes.forEach(cb => cb.checked = false);
+            }
+        });
+    });
+    
+    // Update active tab when checkboxes are manually changed
+    providerCheckboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+            const allChecked = Array.from(providerCheckboxes).every(c => c.checked);
+            const noneChecked = Array.from(providerCheckboxes).every(c => !c.checked);
+            
+            providerTabs.forEach(t => t.classList.remove('active'));
+            if (allChecked) {
+                providerTabs[0].classList.add('active');
+            } else if (noneChecked) {
+                providerTabs[1].classList.add('active');
+            }
+        });
+    });
+
+    const form = document.getElementById('extractForm');
+    const resultsDiv = document.getElementById('results');
+    const extractButton = document.getElementById('extractButton');
+    const stopButton = document.getElementById('stopButton');
+    let isExtracting = false;
+
+    stopButton.addEventListener('click', async () => {
+        if (!isExtracting) return;
+        
+        stopButton.disabled = true;
+        stopButton.textContent = 'Deteniendo...';
+        
+        try {
+            const response = await fetch('/stop_extraction', {
+                method: 'POST'
+            });
+            
+            const data = await response.json();
+            console.log('Stop extraction response:', data);
+        } catch (error) {
+            console.error('Error stopping extraction:', error);
+        }
+    });
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        
+        isExtracting = true;
+        extractButton.classList.add('extracting');
+        extractButton.disabled = true;
+        extractButton.textContent = 'Extrayendo...';
+        stopButton.classList.add('visible');
+        stopButton.disabled = false;
+        stopButton.textContent = 'Detener Extracción';
+        
+        resultsDiv.innerHTML = '<p class="loading">Extrayendo enlaces, por favor espera...</p>';
+
+        const formData = new FormData(form);
+        
+        if (extractFullSeriesCheckbox.checked) {
+            formData.set('extraction_mode', 'specific');
+            // Don't send season/episode to extract all
+            formData.delete('season');
+            formData.delete('episode');
+        }
+        
+        const selectedProviders = Array.from(providerCheckboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+        
+        // If there are selected providers and not all are selected, add them as a parameter
+        if (selectedProviders.length > 0 && selectedProviders.length < providerCheckboxes.length) {
+            formData.set('server', selectedProviders.join(','));
+        } else if (selectedProviders.length === providerCheckboxes.length) {
+            // If all providers are checked, remove the server parameter to indicate no filter
+            formData.delete('server');
+        }
+
+        try {
+            const response = await fetch('/extract', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'stopped') {
+                let html = `<div class="stopped-message">
+                    <h3>⏸️ Extracción Detenida</h3>
+                    <p>${data.message}</p>
+                </div>`;
+                
+                const allLinks = collectAllLinks(data.data);
+                
+                if (allLinks.length > 0) {
+                    html += `<div class="results-header">
+                        <h3 class="results-title">Resultados Parciales</h3>
+                        <button class="copy-all-links-button" onclick="copyAllLinks(${JSON.stringify(allLinks).replace(/"/g, '&quot;')})">
+                            📋 Copiar Todos los Enlaces
+                        </button>
+                    </div>`;
+                }
+                
+                // Display partial results
+// Modificación en la función que procesa los resultados
+// Reemplaza la sección que muestra los enlaces con este código:
+
+for (const [seasonKey, seasonData] of Object.entries(data.data)) {
+    html += `<div class="result-block"><h3>${seasonKey}</h3>`;
+    
+    if (typeof seasonData === 'object' && !Array.isArray(seasonData)) {
+        const episodes = Object.entries(seasonData);
+        episodes.sort((a, b) => {
+            const numA = parseInt(a[0].match(/\d+/)[0]);
+            const numB = parseInt(b[0].match(/\d+/)[0]);
+            return numA - numB;
+        });
+        
+        for (const [episodeKey, links] of episodes) {
+            html += `<h4>${episodeKey}</h4>`;
+            if (links.length > 0) {
+                // Agrupar enlaces por servidor
+                const linksByServer = {};
+                links.forEach(linkObj => {
+                    const server = linkObj.server || 'Desconocido';
+                    if (!linksByServer[server]) {
+                        linksByServer[server] = [];
+                    }
+                    linksByServer[server].push(linkObj.link);
+                });
+                
+                // Mostrar enlaces agrupados por servidor
+                for (const [server, serverLinks] of Object.entries(linksByServer)) {
+                    html += `<h5 style="color: #7c3aed; margin-top: 10px;">${server}</h5>`;
+                    html += '<ol>';
+                    serverLinks.forEach(link => {
+                        html += `<li><a href="${link}" target="_blank">${link}</a></li>`;
+                    });
+                    html += '</ol>';
+                }
+            } else {
+                html += '<p style="color: #888; font-style: italic;">Sin enlaces disponibles</p>';
+            }
+        }
+    } else {
+        if (seasonData.length > 0) {
+            // Agrupar enlaces por servidor
+            const linksByServer = {};
+            seasonData.forEach(linkObj => {
+                const server = linkObj.server || 'Desconocido';
+                if (!linksByServer[server]) {
+                    linksByServer[server] = [];
+                }
+                linksByServer[server].push(linkObj.link);
+            });
+            
+            // Mostrar enlaces agrupados por servidor
+            for (const [server, serverLinks] of Object.entries(linksByServer)) {
+                html += `<h4 style="color: #7c3aed; margin-top: 10px;">${server}</h4>`;
+                html += '<ol>';
+                serverLinks.forEach(link => {
+                    html += `<li><a href="${link}" target="_blank">${link}</a></li>`;
+                });
+                html += '</ol>';
+            }
+        } else {
+            html += '<p>No se encontraron enlaces.</p>';
+        }
+    }
+    html += '</div>';
+}
+                resultsDiv.innerHTML = html;
+            } else if (data.status === 'success') {
+                let html = '';
+                
+                if (data.warning) {
+                    html += `<div class="result-block" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left: 4px solid #f59e0b;">
+                        <h3 style="color: #d97706;">⚠️ Advertencia</h3>
+                        <p style="color: #92400e; margin: 0;">${data.warning}</p>
+                    </div>`;
+                }
+                
+                const allLinks = collectAllLinks(data.data);
+                
+                if (allLinks.length > 0) {
+                    html += `<div class="results-header">
+                        <h3 class="results-title">Resultados de Extracción</h3>
+                        <button class="copy-all-links-button" onclick="copyAllLinks(${JSON.stringify(allLinks).replace(/"/g, '&quot;')})">
+                            📋 Copiar Todos los Enlaces
+                        </button>
+                    </div>`;
+                }
+                
+// Modificación en la función que procesa los resultados
+// Reemplaza la sección que muestra los enlaces con este código:
+
+for (const [seasonKey, seasonData] of Object.entries(data.data)) {
+    html += `<div class="result-block"><h3>${seasonKey}</h3>`;
+    
+    if (typeof seasonData === 'object' && !Array.isArray(seasonData)) {
+        const episodes = Object.entries(seasonData);
+        episodes.sort((a, b) => {
+            const numA = parseInt(a[0].match(/\d+/)[0]);
+            const numB = parseInt(b[0].match(/\d+/)[0]);
+            return numA - numB;
+        });
+        
+        for (const [episodeKey, links] of episodes) {
+            html += `<h4>${episodeKey}</h4>`;
+            if (links.length > 0) {
+                // Agrupar enlaces por servidor
+                const linksByServer = {};
+                links.forEach(linkObj => {
+                    const server = linkObj.server || 'Desconocido';
+                    if (!linksByServer[server]) {
+                        linksByServer[server] = [];
+                    }
+                    linksByServer[server].push(linkObj.link);
+                });
+                
+                // Mostrar enlaces agrupados por servidor
+                for (const [server, serverLinks] of Object.entries(linksByServer)) {
+                    html += `<h5 style="color: #7c3aed; margin-top: 10px;">${server}</h5>`;
+                    html += '<ol>';
+                    serverLinks.forEach(link => {
+                        html += `<li><a href="${link}" target="_blank">${link}</a></li>`;
+                    });
+                    html += '</ol>';
+                }
+            } else {
+                html += '<p style="color: #888; font-style: italic;">Sin enlaces disponibles</p>';
+            }
+        }
+    } else {
+        if (seasonData.length > 0) {
+            // Agrupar enlaces por servidor
+            const linksByServer = {};
+            seasonData.forEach(linkObj => {
+                const server = linkObj.server || 'Desconocido';
+                if (!linksByServer[server]) {
+                    linksByServer[server] = [];
+                }
+                linksByServer[server].push(linkObj.link);
+            });
+            
+            // Mostrar enlaces agrupados por servidor
+            for (const [server, serverLinks] of Object.entries(linksByServer)) {
+                html += `<h4 style="color: #7c3aed; margin-top: 10px;">${server}</h4>`;
+                html += '<ol>';
+                serverLinks.forEach(link => {
+                    html += `<li><a href="${link}" target="_blank">${link}</a></li>`;
+                });
+                html += '</ol>';
+            }
+        } else {
+            html += '<p>No se encontraron enlaces.</p>';
+        }
+    }
+    html += '</div>';
+}
+                resultsDiv.innerHTML = html;
+            } else {
+                resultsDiv.innerHTML = `<p class="error">Error: ${data.message}</p>`;
+            }
+        } catch (error) {
+            resultsDiv.innerHTML = `<p class="error">Error de conexión: ${error.message}</p>`;
+        } finally {
+            isExtracting = false;
+            extractButton.classList.remove('extracting');
+            extractButton.disabled = false;
+            extractButton.textContent = 'Extraer';
+            stopButton.classList.remove('visible');
+        }
+    });
+    
+    function collectAllLinks(data) {
+        const allLinks = [];
+        
+        for (const [seasonKey, seasonData] of Object.entries(data)) {
+            if (typeof seasonData === 'object' && !Array.isArray(seasonData)) {
+                // Series with episodes
+                for (const [episodeKey, links] of Object.entries(seasonData)) {
+                    if (Array.isArray(links)) {
+                        allLinks.push(...links);
+                    }
+                }
+            } else if (Array.isArray(seasonData)) {
+                // Movie or direct links
+                allLinks.push(...seasonData);
+            }
+        }
+        
+        return allLinks;
+    }
+    
+    function copyAllLinks(links) {
+        const linksText = links.join('\n');
+        navigator.clipboard.writeText(linksText).then(() => {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '✅ Enlaces Copiados';
+            setTimeout(() => {
+                button.innerHTML = originalText;
+            }, 2000);
+        }).catch(err => {
+            alert('Error al copiar enlaces: ' + err);
+        });
+    }
+    
+    const searchInput = document.getElementById('search_name');
+    const searchResults = document.getElementById('searchResults');
+    const tmdbIdInput = document.getElementById('tmdb_id');
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        
+        clearTimeout(searchTimeout);
+        
+        if (query.length < 2) {
+            searchResults.classList.remove('visible');
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+            performSearch(query, 'multi', searchResults, tmdbIdInput, typeSelect);
+        }, 300);
+    });
+    
+    // Close search results when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.classList.remove('visible');
+        }
+        if (!searchInputTmdb.contains(e.target) && !searchResultsTmdb.contains(e.target)) {
+            searchResultsTmdb.classList.remove('visible');
+        }
+        // Close image modal if clicking outside of it
+        if (e.target.id === 'imageModal') {
+            closeImageModal();
+        }
+    });
+    
+    const searchInputTmdb = document.getElementById('search_name_tmdb');
+    const searchResultsTmdb = document.getElementById('searchResultsTmdb');
+    const tmdbIdInputScraper = document.getElementById('tmdb_id_scraper');
+    const typeScraperSelect = document.getElementById('type_scraper');
+    let searchTimeoutTmdb;
+    
+    searchInputTmdb.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        
+        clearTimeout(searchTimeoutTmdb);
+        
+        if (query.length < 2) {
+            searchResultsTmdb.classList.remove('visible');
+            return;
+        }
+        
+        searchTimeoutTmdb = setTimeout(() => {
+            performSearch(query, 'multi', searchResultsTmdb, tmdbIdInputScraper, typeScraperSelect);
+        }, 300);
+    });
+    
+    async function performSearch(query, type, resultsContainer, idInput, typeSelect) {
+        resultsContainer.innerHTML = '<div class="search-loading">🔍 Buscando...</div>';
+        resultsContainer.classList.add('visible');
+        
+        try {
+            const response = await fetch(`/search_tmdb?query=${encodeURIComponent(query)}&type=${type}`);
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                if (data.results.length === 0) {
+                    resultsContainer.innerHTML = '<div class="search-empty">No se encontraron resultados</div>';
+                } else {
+                    renderSearchResults(data.results, resultsContainer, idInput, typeSelect);
+                }
+            } else {
+                resultsContainer.innerHTML = '<div class="search-empty">Error en la búsqueda</div>';
+            }
+        } catch (error) {
+            resultsContainer.innerHTML = '<div class="search-empty">Error de conexión</div>';
+        }
+    }
+    
+    function renderSearchResults(results, container, idInput, typeSelect) {
+        let html = '';
+        
+        results.forEach(result => {
+            const posterHtml = result.poster_path 
+                ? `<img src="${result.poster_path}" alt="${result.title}" class="search-result-poster">`
+                : '<div class="search-result-poster"></div>';
+            
+            const mediaTypeBadge = result.media_type === 'series' ? 'Serie' : 'Película';
+            
+            html += `
+                <div class="search-result-item" data-id="${result.id}" data-type="${result.media_type}">
+                    ${posterHtml}
+                    <div class="search-result-info">
+                        <div class="search-result-title">${result.title}</div>
+                        <div class="search-result-meta">
+                            <span class="search-result-badge">${mediaTypeBadge}</span>
+                            ${result.year ? `<span>${result.year}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+        
+        // Add click handlers
+        container.querySelectorAll('.search-result-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const id = item.dataset.id;
+                const type = item.dataset.type;
+                const title = item.querySelector('.search-result-title').textContent;
+                
+                // Populate ID field
+                idInput.value = id;
+                
+                // Set type
+                typeSelect.value = type;
+                
+                // Trigger change event for type select
+                typeSelect.dispatchEvent(new Event('change'));
+                
+                // Update search input with selected title
+                if (container.id === 'searchResults') {
+                    searchInput.value = title;
+                } else {
+                    searchInputTmdb.value = title;
+                }
+                
+                // Hide results
+                container.classList.remove('visible');
+            });
+        });
+    }
+    
+    const mainTabs = document.querySelectorAll('.main-tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    mainTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetTab = tab.dataset.tab;
+            
+            mainTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            tabContents.forEach(content => {
+                if (content.id === targetTab + 'Tab') {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        });
+    });
+    
+    const tmdbForm = document.getElementById('tmdbForm');
+    const tmdbResults = document.getElementById('tmdbResults');
+    const tmdbExtractButton = document.getElementById('tmdbExtractButton');
+    
+    tmdbForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        
+        tmdbExtractButton.disabled = true;
+        tmdbExtractButton.textContent = 'Extrayendo...';
+        
+        tmdbResults.innerHTML = '<div class="tmdb-loading">⏳ Extrayendo datos de TMDB...</div>';
+        
+        const formData = new FormData(tmdbForm);
+        
+        try {
+            const response = await fetch('/extract_tmdb', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                renderTMDBResults(data.data, data.is_series);
+            } else {
+                tmdbResults.innerHTML = `<div class="tmdb-error">❌ ${data.message}</div>`;
+            }
+        } catch (error) {
+            tmdbResults.innerHTML = `<div class="tmdb-error">❌ Error de conexión: ${error.message}</div>`;
+        } finally {
+            tmdbExtractButton.disabled = false;
+            tmdbExtractButton.textContent = 'Extraer Datos de TMDB';
+        }
+    });
+    
+    function renderTMDBResults(data, isSeries) {
+        const { description, posters, backdrops, episode_images } = data;
+        
+        let html = `
+            <div class="tmdb-header">
+                <h3>${isSeries ? '📺 Serie' : '🎬 Película'}</h3>
+            </div>
+            
+            <div class="description-section">
+                <h3>📝 Descripción</h3>
+                <p class="description-text">${description}</p>
+            </div>
+            
+            <div class="sub-tabs">
+                <button class="sub-tab active" data-subtab="posters">Posters</button>
+                <button class="sub-tab" data-subtab="backdrops">Backdrops</button>
+                ${isSeries ? '<button class="sub-tab" data-subtab="episodes">img x ep</button>' : ''}
+            </div>
+            
+            <div class="sub-tab-content active" id="postersContent">
+                ${renderImagesGrid(posters, 'poster', 'Posters')}
+            </div>
+            
+            <div class="sub-tab-content" id="backdropsContent">
+                ${renderImagesGrid(backdrops, 'backdrop', 'Backdrops')}
+            </div>
+            
+            ${isSeries ? `<div class="sub-tab-content" id="episodesContent">
+                ${renderEpisodeImages(episode_images)}
+            </div>` : ''}
+        `;
+        
+        tmdbResults.innerHTML = html;
+        
+        // Setup sub-tabs
+        const subTabs = tmdbResults.querySelectorAll('.sub-tab');
+        const subTabContents = tmdbResults.querySelectorAll('.sub-tab-content');
+        
+        subTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetSubTab = tab.dataset.subtab;
+                
+                subTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                subTabContents.forEach(content => {
+                    if (content.id === targetSubTab + 'Content') {
+                        content.classList.add('active');
+                    } else {
+                        content.classList.remove('active');
+                    }
+                });
+            });
+        });
+        
+        // Setup copy buttons
+        setupCopyButtons();
+    }
+    
+    function renderImagesGrid(images, type, title) {
+        if (!images || images.length === 0) {
+            return `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🖼️</div>
+                    <p>No hay ${title.toLowerCase()} disponibles</p>
+                </div>
+            `;
+        }
+        
+        const urls = images.map(url => `"${url}"`).join(',\n');
+        
+        let html = `
+            <div class="images-header">
+                <span class="images-count">${images.length} ${title.toLowerCase()}</span>
+                <button class="copy-all-button" data-urls='${JSON.stringify(images)}'>
+                    📋 Copiar URLs
+                </button>
+            </div>
+            <div class="images-grid">
+        `;
+        
+        images.forEach((url, index) => {
+            html += `
+                <div class="image-card">
+                    <div class="image-wrapper ${type}">
+                        <img src="${url}" alt="${title} ${index + 1}" loading="lazy">
+                    </div>
+                    <div class="image-actions">
+                        <button class="image-button copy-url" data-url="${url}">
+                            📋 Copiar
+                        </button>
+                        <button class="image-button" onclick="openImageModal('${url}')">
+                            🔗 Abrir
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        return html;
+    }
+    
+    function renderEpisodeImages(episodeImages) {
+        if (!episodeImages || Object.keys(episodeImages).length === 0) {
+            return `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📺</div>
+                    <p>No hay imágenes de episodios disponibles</p>
+                </div>
+            `;
+        }
+        
+        let html = '<div class="episode-images-list">';
+        
+        // Collect all URLs for copy all button
+        const allUrls = [];
+        Object.values(episodeImages).forEach(season => {
+            Object.values(season).forEach(url => allUrls.push(url));
+        });
+        
+        html += `
+            <div class="images-header">
+                <span class="images-count">${allUrls.length} imágenes de episodios</span>
+                <button class="copy-all-button" data-urls='${JSON.stringify(allUrls)}'>
+                    📋 Copiar Todas las URLs
+                </button>
+            </div>
+        `;
+        
+        for (const [seasonKey, episodes] of Object.entries(episodeImages)) {
+            html += `
+                <div class="season-section">
+                    <h4>📺 ${seasonKey}</h4>
+                    <div class="episode-grid">
+            `;
+            
+            const sortedEpisodes = Object.entries(episodes).sort((a, b) => {
+                const numA = parseInt(a[0].match(/\d+/)[0]);
+                const numB = parseInt(b[0].match(/\d+/)[0]);
+                return numA - numB;
+            });
+            
+            for (const [episodeKey, imageUrl] of sortedEpisodes) {
+                html += `
+                    <div class="episode-card">
+                        <img src="${imageUrl}" alt="${episodeKey}" class="episode-image" loading="lazy">
+                        <div class="episode-info">
+                            <div class="episode-title">${episodeKey}</div>
+                            <div class="episode-actions">
+                                <button class="image-button copy-url" data-url="${imageUrl}">
+                                    📋 Copiar
+                                </button>
+                                <button class="image-button" onclick="openImageModal('${imageUrl}')">
+                                    🔗 Abrir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+        
+        html += '</div>';
+        return html;
+    }
+    
+    function setupCopyButtons() {
+        // Copy individual URL
+        document.querySelectorAll('.copy-url').forEach(button => {
+            button.addEventListener('click', () => {
+                const url = button.dataset.url;
+                navigator.clipboard.writeText(url).then(() => {
+                    const originalText = button.textContent;
+                    button.textContent = '✅ Copiado';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                    }, 2000);
+                });
+            });
+        });
+        
+        // Copy all URLs
+        document.querySelectorAll('.copy-all-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const urls = JSON.parse(button.dataset.urls);
+                const urlsText = urls.join('\n');
+                navigator.clipboard.writeText(urlsText).then(() => {
+                    const originalText = button.textContent;
+                    button.textContent = '✅ Copiadas';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                    }, 2000);
+                });
+            });
+        });
+    }
+    
+    function openImageModal(url) {
+        const modal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const modalUrl = document.getElementById('modalUrl');
+        
+        modalImage.src = url;
+        modalUrl.textContent = url;
+        modal.classList.add('visible');
+        
+        // Prevent body scroll when modal is open
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeImageModal() {
+        const modal = document.getElementById('imageModal');
+        modal.classList.remove('visible');
+        
+        // Restore body scroll
+        document.body.style.overflow = '';
+    }
+    
+    function copyModalUrl() {
+        const modalUrl = document.getElementById('modalUrl');
+        const url = modalUrl.textContent;
+        
+        navigator.clipboard.writeText(url).then(() => {
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '✅ Copiado';
+            setTimeout(() => {
+                button.textContent = originalText;
+            }, 2000);
+        });
+    }
+    
+    // Close modal when clicking outside and with Escape key handled in the general document click listener
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeImageModal();
+        }
+    });
+</script>
+
+</body>
+</html>
