@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StreamFusion - Tu lugar de entretenimiento | Películas, Series, Animes y Doramas</title>
+<!-- Added comprehensive SEO meta tags -->
+<meta name="description" content="StreamFusion es tu plataforma gratuita de entretenimiento streaming. Disfruta de películas, series, animes y doramas de Netflix, Disney+, HBO Max, Prime Video y más en un solo lugar.">
+<meta name="keywords" content="streaming gratis, películas online, series online, animes, doramas, Netflix, Disney Plus, HBO Max, Prime Video, entretenimiento">
+<meta name="author" content="StreamFusion">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="StreamFusion - Tu lugar de entretenimiento">
+<meta property="og:description" content="Plataforma gratuita de streaming con películas, series, animes y doramas de todas las plataformas.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="StreamFusion - Tu lugar de entretenimiento">
+<meta name="twitter:description" content="Plataforma gratuita de streaming con películas, series, animes y doramas.">
+<link rel="canonical" href="https://themoviedbscraper.blogspot.com/">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<link rel="preconnect" href="https://api.themoviedb.org">
+<link rel="preconnect" href="https://image.tmdb.org">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com">
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" as="style">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!-- Loading spinner -->
+<div class="spinner-container" id="spinner-container">
+<div class="spinner"></div>
+</div>
+
+<!-- Authentication Container (Now a Modal) -->
+<div class="auth-container" id="auth-container">
+<div class="auth-form-container">
+  <button class="auth-close-btn" id="auth-close-btn">×</button>
+  <div class="auth-logo">
+    <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgwEIohuv69wQQguGJ38FnDZaZEkfxuy56A0aI2k2LvU0ot-9d1iTKVCtIo78jDVcRP0cdcYwtNbjrMvaEWP_r_C0cHb9bWy-dQ8sAPS85675SS46RQBoRqFURIBOjbZlWX_65CWEOoSwpK50yb1WCLzD4RQYEgKAhx6X2nibAdiGrqRw0/s1600/Icono%20Actualizado%20(2).png" alt="StreamFusion">
+  </div>
+
+  <!-- Login Form -->
+  <div id="login-form-container">
+    <h2 class="auth-title" data-translate="auth.loginTitle">Iniciar Sesión</h2>
+    <form id="login-form" class="auth-form">
+      <div class="form-group">
+        <input type="email" id="login-email" class="form-input" placeholder="Correo electrónico" data-translate-placeholder="auth.emailPlaceholder" required>
+      </div>
+      <div class="form-group">
+        <input type="password" id="login-password" class="form-input" placeholder="Contraseña" data-translate-placeholder="auth.passwordPlaceholder" required>
+      </div>
+      <div id="login-error" class="auth-error" style="display: none;"></div>
+      <button type="submit" class="auth-btn" data-translate="auth.loginButton">Iniciar Sesión</button>
+    </form>
+<div style="display: flex; align-items: center; margin: 20px 0; color: #8c8c8c;">
+  <div style="flex: 1; height: 1px; background-color: #333;"></div>
+  <div style="margin: 0 10px;">o</div>
+  <div style="flex: 1; height: 1px; background-color: #333;"></div>
+</div>
+
+<button type="button" id="google-register-btn" class="auth-btn" style="background-color: #fff; color: #333; display: flex; align-items: center; justify-content: center; gap: 10px;">
+  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width: 18px; height: 18px;">
+  <span data-translate="auth.continueWithGoogle">Continuar con Google</span>
+</button>
+    <div class="auth-switch">
+      <span data-translate="auth.noAccount">¿No tienes una cuenta?</span><a id="show-register" data-translate="auth.registerLink">Regístrate</a>
+    </div>
+  </div>
+
+  <!-- Register Form -->
+  <div id="register-form-container" style="display: none;">
+    <h2 class="auth-title" data-translate="auth.createAccountTitle">Crear Cuenta</h2>
+    <form id="register-form" class="auth-form">
+      <div class="form-group">
+        <input type="text" id="register-name" class="form-input" placeholder="Nombre completo" data-translate-placeholder="auth.fullNamePlaceholder" required>
+      </div>
+      <div class="form-group">
+        <input type="email" id="register-email" class="form-input" placeholder="Correo electrónico" data-translate-placeholder="auth.emailPlaceholder" required>
+      </div>
+      <div class="form-group">
+        <input type="password" id="register-password" class="form-input" placeholder="Contraseña" data-translate-placeholder="auth.passwordPlaceholder" required>
+      </div>
+      <div class="form-group">
+        <input type="password" id="register-confirm-password" class="form-input" placeholder="Confirmar contraseña" data-translate-placeholder="auth.confirmPasswordPlaceholder" required>
+</div>
+<div style="display: flex; align-items: center; margin: 20px 0; color: #8c8c8c;">
+  <div style="flex: 1; height: 1px; background-color: #333;"></div>
+  <div style="margin: 0 10px;">o</div>
+  <div style="flex: 1; height: 1px; background-color: #333;"></div>
+</div>
+
+<button type="button" id="google-login-btn" class="auth-btn" style="background-color: #fff; color: #333; display: flex; align-items: center; justify-content: center; gap: 10px;">
+  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width: 18px; height: 18px;">
+  <span data-translate="auth.continueWithGoogle">Continuar con Google</span>
+</button>
+      <div id="register-error" class="auth-error" style="display: none;"></div>
+      <div id="register-success" class="auth-success" style="display: none;"></div>
+      <button type="submit" class="auth-btn" data-translate="auth.registerButton">Registrarse</button>
+    </form>
+    <div class="auth-switch">
+      <span data-translate="auth.hasAccount">¿Ya tienes una cuenta?</span><a id="show-login" data-translate="auth.loginLink">Inicia sesión</a>
+    </div>
+  </div>
+</div>
+
+<!-- Link Management Modal -->
+<div id="link-management-modal" style="display: none;">
+  <div class="modal-overlay">
+    <div class="modal-container" style="max-width: 800px;"> <!-- A wider modal for this purpose -->
+      <div class="modal-header">
+        <h3 class="modal-title" id="link-modal-title">Gestionar Enlaces para: </h3>
+        <span class="modal-close" id="close-link-modal">×</span>
+      </div>
+      <div class="modal-body" id="link-modal-body" style="max-height: 60vh; overflow-y: auto;">
+        <!-- Dynamic content will be injected here by JavaScript -->
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-secondary" id="cancel-link-modal" data-translate="modal.cancelButton">Cancelar</button>
+        <button class="modal-btn modal-btn-primary" id="save-links-btn" data-translate="modal.saveLinksButton">Guardar Enlaces</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Header -->
+<header id="header">
+<div class="logo-container">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgwEIohuv69wQQguGJ38FnDZaZEkfxuy56A0aI2k2LvU0ot-9d1iTKVCtIo78jDVcRP0cdcYwtNbjrMvaEWP_r_C0cHb9bWy-dQ8sAPS85675SS46RQBoRqFURIBOjbZlWX_65CWEOoSwpK50yb1WCLzD4RQYEgKAhx6X2nibAdiGrqRw0/s1600/Icono%20Actualizado%20(2).png" alt="StreamFusion Logo">
+  <!-- This is the only h1 on the page for SEO -->
+  <h1 class="logo-text">StreamFusion</h1>
+</div>
+
+<nav class="nav-links" aria-label="Navegación principal">
+  <a href="#" class="nav-link active" data-section="home" data-translate="nav.home">Inicio</a>
+  <a href="#" class="nav-link" data-section="movies" data-translate="nav.movies">Películas</a>
+  <a href="#" class="nav-link" data-section="series" data-translate="nav.series">Series</a>
+  <a href="#" class="nav-link" data-section="animes" data-translate="nav.animes">Animes</a>
+  <a href="#" class="nav-link" data-section="doramas" data-translate="nav.doramas">Doramas</a>
+  <a href="go:TV" class="nav-link" target="_blank" data-translate="nav.tv">TV</a>
+</nav>
+
+<div class="header-actions">
+  <div class="search-container">
+    <input type="text" id="search-input" class="search-input" placeholder="Buscar títulos..." data-translate-placeholder="search.placeholder">
+    <button id="search-btn" class="search-btn">
+      <i class="fas fa-search"></i>
+    </button>
+  </div>
+  <div class="user-profile" id="user-profile">
+    <div class="profile-icon" id="profile-icon">
+      <i class="fas fa-sign-in-alt"></i> <!-- Default icon for unauthenticated users -->
+    </div>
+    <div class="profile-dropdown" id="profile-dropdown">
+      <!-- Dropdown items will be dynamically generated by JS -->
+    </div>
+  </div>
+</div>
+</header>
+<!-- Home View -->
+<div id="home-view" class="page-view active">
+<!-- Hero section -->
+<section class="hero" id="hero" aria-label="Contenido destacado">
+  <!-- Los slides se generarán dinámicamente -->
+</section>
+
+<!-- Main content -->
+<main class="main-container">
+  <!-- Changed to main for semantic HTML -->
+  <!-- Streaming services -->
+  <section class="services-container" id="streaming-services" aria-label="Plataformas de streaming">
+    <!-- Added: Back button for mobile view -->
+    <button class="services-back-btn" id="services-back-btn">
+    </button>
+
+    <div class="service-item" data-service="netflix">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Netflix_logo.svg" alt="Netflix" class="service-logo">
+      <span class="service-name">Netflix</span>
+    </div>
+    <div class="service-item" data-service="disney">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg" alt="Disney+" class="service-logo">
+      <span class="service-name">Disney+</span>
+    </div>
+    <div class="service-item" data-service="hbo">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Max_logo.svg" alt="HBO Max" class="service-logo">
+      <span class="service-name">HBO Max</span>
+    </div>
+    <div class="service-item" data-service="prime">
+      <img src="https://cdn.worldvectorlogo.com/logos/amazon-prime-video-1.svg" alt="Prime Video" class="service-logo">
+      <span class="service-name">Prime</span>
+    </div>
+    <div class="service-item" data-service="paramount">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/9/90/Paramount_Pictures_Corporation_logo.svg" alt="Paramount+" class="service-logo">
+      <span class="service-name">Paramount+</span>
+    </div>
+  </section>
+
+<!-- Sección de categorías en círculos -->
+<section class="categories-section" aria-label="Categorías de contenido">
+    <!-- Changed h2 to h2 for proper hierarchy -->
+    <h2 class="section-title" data-translate="home.exploreByCategory">Explorar por Categoría</h2>
+    <div class="categories-container" id="categories-container">
+        <!-- Las categorías se generarán dinámicamente aquí -->
+    </div>
+</section>
+
+<!-- En Estreno content (NEW SECTION) -->
+<section class="content-row" aria-labelledby="en-estreno-title">
+  <div class="row-header">
+    <!-- Changed h2 to h2 and added id for aria-labelledby -->
+    <h2 class="section-title" id="en-estreno-title" data-translate="home.inTheaters">En Estreno/Emisión</h2>
+    <a href="#" class="see-all" id="see-all-en-estreno" aria-label="Ver todo el contenido en estreno"></a>
+  </div>
+  <div class="content-slider">
+    <div class="slider-container" id="en-estreno-slider">
+      <!-- Content will be dynamically generated -->
+    </div>
+    <div class="slider-controls">
+      <button class="slider-arrow slider-prev" aria-label="Anterior">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <button class="slider-arrow slider-next" aria-label="Siguiente">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Recently Added content -->
+<section class="content-row" aria-labelledby="recently-added-title">
+  <div class="row-header">
+    <!-- Changed h2 to h2 and added id -->
+    <h2 class="section-title" id="recently-added-title" data-translate="home.recentlyAdded">Recién Agregado</h2>
+  </div>
+  <div class="content-slider">
+    <div class="slider-container" id="recently-added-slider">
+      <!-- Content will be dynamically generated -->
+    </div>
+    <div class="slider-controls">
+      <button class="slider-arrow slider-prev" aria-label="Anterior">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <button class="slider-arrow slider-next" aria-label="Siguiente">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</section>
+
+  <!-- Trending content -->
+  <section class="content-row" aria-labelledby="trending-title">
+    <div class="row-header">
+      <!-- Changed h2 to h2 and added id -->
+      <h2 class="section-title" id="trending-title" data-translate="home.top10">TOP 10 más vistos</h2>
+    </div>
+    <div class="content-slider">
+      <div class="slider-container" id="trending-slider">
+        <!-- Content will be dynamically generated -->
+      </div>
+      <div class="slider-controls">
+        <button class="slider-arrow slider-prev" aria-label="Anterior">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="slider-arrow slider-next" aria-label="Siguiente">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Popular movies -->
+  <section class="content-row" aria-labelledby="movies-title">
+    <div class="row-header">
+      <!-- Changed h2 to h2 and added id -->
+      <h2 class="section-title" id="movies-title" data-translate="home.popularMovies">Películas populares</h2>
+      <a href="#" class="see-all" id="see-all-movies" aria-label="Ver todas las películas"><span data-translate="home.seeAll">Ver todo</span> <i class="fas fa-chevron-right"></i></a>
+    </div>
+    <div class="content-slider">
+      <div class="slider-container" id="movies-slider">
+        <!-- Content will be dynamically generated -->
+      </div>
+      <div class="slider-controls">
+        <button class="slider-arrow slider-prev" aria-label="Anterior">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="slider-arrow slider-next" aria-label="Siguiente">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Popular series -->
+  <section class="content-row" aria-labelledby="series-title">
+    <div class="row-header">
+      <!-- Changed h2 to h2 and added id -->
+      <h2 class="section-title" id="series-title" data-translate="home.popularSeries">Series populares</h2>
+      <a href="#" class="see-all" id="see-all-series" aria-label="Ver todas las series"><span data-translate="home.seeAll">Ver todo</span> <i class="fas fa-chevron-right"></i></a>
+    </div>
+    <div class="content-slider">
+      <div class="slider-container" id="series-slider">
+        <!-- Content will be dynamically generated -->
+      </div>
+      <div class="slider-controls">
+        <button class="slider-arrow slider-prev" aria-label="Anterior">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="slider-arrow slider-next" aria-label="Siguiente">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+</main>
+</div>
+
+<!-- En Estreno View (NEW VIEW) -->
+<div id="en-estreno-view" class="page-view">
+  <div class="main-container">
+    <div class="page-header">
+      <!-- Changed h1 to h2 for proper hierarchy -->
+      <h2 class="page-title" data-translate="page.inTheatersTitle">En Estreno</h2>
+      <button class="back-button" id="back-from-en-estreno" aria-label="Volver a inicio">
+        <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+      </button>
+    </div>
+    <div class="content-grid-view" id="en-estreno-grid">
+      <!-- Content will be dynamically generated -->
+    </div>
+    <div class="load-more-container" style="display: none;">
+      <button id="load-more-en-estreno" class="load-more-btn" data-translate="page.loadMore">Cargar Más</button>
+    </div>
+  </div>
+</div>
+
+<!-- Movies View -->
+<div id="movies-view" class="page-view">
+<div class="main-container">
+  <div class="page-header">
+    <!-- Changed h1 to h2 for proper hierarchy -->
+    <h2 class="page-title" data-translate="page.moviesTitle">Películas</h2>
+    <button class="back-button" id="back-from-movies" aria-label="Volver a inicio">
+      <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+    </button>
+  </div>
+  <div class="content-grid-view" id="movies-grid">
+    <!-- Content will be dynamically generated -->
+  </div>
+  <div class="load-more-container" style="display: none;">
+    <button id="load-more-movies" class="load-more-btn" data-translate="page.loadMore">Cargar Más</button>
+  </div>
+</div>
+</div>
+
+<!-- Series View -->
+<div id="series-view" class="page-view">
+<div class="main-container">
+  <div class="page-header">
+    <!-- Changed h1 to h2 for proper hierarchy -->
+    <h2 class="page-title" data-translate="page.seriesTitle">Series</h2>
+    <button class="back-button" id="back-from-series" aria-label="Volver a inicio">
+      <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+    </button>
+  </div>
+  <div class="content-grid-view" id="series-grid">
+    <!-- Content will be dynamically generated -->
+  </div>
+  <div class="load-more-container" style="display: none;">
+    <button id="load-more-series" class="load-more-btn" data-translate="page.loadMore">Cargar Más</button>
+  </div>
+</div>
+</div>
+
+<!-- Animes View -->
+<div id="animes-view" class="page-view">
+<div class="main-container">
+  <div class="page-header">
+    <!-- Changed h1 to h2 for proper hierarchy -->
+    <h2 class="page-title" data-translate="page.animesTitle">Animes</h2>
+    <button class="back-button" id="back-from-animes" aria-label="Volver a inicio">
+      <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+    </button>
+  </div>
+  <div class="content-grid-view" id="animes-grid">
+    <!-- Content will be dynamically generated -->
+  </div>
+  <div class="load-more-container" style="display: none;">
+    <button id="load-more-animes" class="load-more-btn" data-translate="page.loadMore">Cargar Más</button>
+  </div>
+</div>
+</div>
+
+<!-- Doramas View -->
+<div id="doramas-view" class="page-view">
+<div class="main-container">
+  <div class="page-header">
+    <!-- Changed h1 to h2 for proper hierarchy -->
+    <h2 class="page-title" data-translate="page.doramasTitle">Doramas</h2>
+    <button class="back-button" id="back-from-doramas" aria-label="Volver a inicio">
+      <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+    </button>
+  </div>
+  <div class="content-grid-view" id="doramas-grid">
+    <!-- Content will be dynamically generated -->
+  </div>
+  <div class="load-more-container" style="display: none;">
+    <button id="load-more-doramas" class="load-more-btn" data-translate="page.loadMore">Cargar Más</button>
+  </div>
+</div>
+</div>
+
+<!-- Netflix View -->
+<div id="netflix-view" class="page-view">
+  <div class="main-container">
+    <div class="page-header">
+      <!-- Changed h1 to h2 for proper hierarchy -->
+      <h2 class="page-title">Netflix</h2>
+      <button class="back-button" id="back-from-netflix" aria-label="Volver a inicio">
+        <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+      </button>
+    </div>
+    <div class="content-grid-view" id="netflix-grid">
+      <!-- Content will be dynamically generated -->
+    </div>
+    <div class="load-more-container" style="display: none;">
+      <button id="load-more-netflix" class="load-more-btn" data-translate="page.loadMore">Cargar Más</button>
+    </div>
+  </div>
+</div>
+
+<!-- Disney View -->
+<div id="disney-view" class="page-view">
+  <div class="main-container">
+    <div class="page-header">
+      <!-- Changed h1 to h2 for proper hierarchy -->
+      <h2 class="page-title">Disney+</h2>
+      <button class="back-button" id="back-from-disney" aria-label="Volver a inicio">
+        <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+      </button>
+    </div>
+    <div class="content-grid-view" id="disney-grid">
+      <!-- Content will be dynamically generated -->
+    </div>
+    <div class="load-more-container" style="display: none;">
+      <button id="load-more-disney" class="load-more-btn" data-translate="page.loadMore">Cargar Más</button>
+    </div>
+  </div>
+</div>
+
+<!-- HBO View -->
+<div id="hbo-view" class="page-view">
+  <div class="main-container">
+    <div class="page-header">
+      <!-- Changed h1 to h2 for proper hierarchy -->
+      <h2 class="page-title">HBO Max</h2>
+      <button class="back-button" id="back-from-hbo" aria-label="Volver a inicio">
+        <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+      </button>
+    </div>
+    <div class="content-grid-view" id="hbo-grid">
+      <!-- Content will be dynamically generated -->
+    </div>
+    <div class="load-more-container" style="display: none;">
+      <button id="load-more-hbo" class="load-more-btn" data-translate="page.loadMore">Cargar Más</button>
+    </div>
+  </div>
+</div>
+
+<!-- Prime View -->
+<div id="prime-view" class="page-view">
+  <div class="main-container">
+    <div class="page-header">
+      <!-- Changed h1 to h2 for proper hierarchy -->
+      <h2 class="page-title">Prime Video</h2>
+      <button class="back-button" id="back-from-prime" aria-label="Volver a inicio">
+        <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+      </button>
+    </div>
+    <div class="content-grid-view" id="prime-grid">
+      <!-- Content will be dynamically generated -->
+    </div>
+    <div class="load-more-container" style="display: none;">
+      <button id="load-more-prime" class="load-more-btn" data-translate="page.loadMore">Cargar Más</button>
+    </div>
+  </div>
+</div>
+
+<!-- Paramount View -->
+<div id="paramount-view" class="page-view">
+  <div class="main-container">
+    <div class="page-header">
+      <!-- Changed h1 to h2 for proper hierarchy -->
+      <h2 class="page-title">Paramount+</h2>
+      <button class="back-button" id="back-from-paramount" aria-label="Volver a inicio">
+        <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+      </button>
+    </div>
+    <div class="content-grid-view" id="paramount-grid">
+      <!-- Content will be dynamically generated -->
+    </div>
+    <div class="load-more-container" style="display: none;">
+      <button id="load-more-paramount" class="load-more-btn" data-translate="page.loadMore">Cargar Más</button>
+    </div>
+  </div>
+</div>
+
+<!-- User Profile Page -->
+<div id="user-profile-page" class="user-profile-page page-view">
+<div class="main-container">
+  <div class="page-header">
+    <!-- Changed h1 to h2 for proper hierarchy -->
+    <h2 class="page-title" data-translate="profile.myProfile">Mi Perfil</h2>
+    <button class="back-button" id="back-from-profile" aria-label="Volver a inicio">
+      <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+    </button>
+  </div>
+
+  <div class="profile-header">
+    <div class="profile-avatar" id="profile-avatar">
+      <!-- Will be filled dynamically -->
+    </div>
+    <div class="profile-info">
+      <!-- Changed h2 to h3 for proper hierarchy -->
+      <h3 id="profile-name">Nombre de Usuario</h3>
+      <p id="profile-email">usuario@ejemplo.com</p>
+    </div>
+  </div>
+
+  <div class="profile-tabs">
+    <div class="profile-tab active" data-tab="info" data-translate="profile.info">Información</div>
+    <div class="profile-tab" data-tab="my-list" data-translate="profile.myList">Mi Lista</div>
+    <div class="profile-tab" data-tab="messages" data-translate="profile.messages">Mensajes</div>
+    <div class="profile-tab" data-tab="settings" style="display: none;" data-translate="profile.settings">Configuración</div>
+  </div>
+
+  <div class="profile-content">
+    <!-- Info Section (NEW STYLE) -->
+    <div class="profile-section active" id="info-section">
+      <div class="user-info-block">
+        <!-- Changed h3 to h3 for proper hierarchy -->
+        <h3 data-translate="profile.userDetails">Detalles de Usuario</h3>
+        <div class="user-info-detail">
+          <i class="fas fa-user"></i> <strong data-translate="profile.nameLabel">Nombre:</strong> <span id="info-name">Nombre de Usuario</span>
+        </div>
+        <div class="user-info-detail">
+          <i class="fas fa-envelope"></i> <strong data-translate="profile.emailLabel">Correo:</strong> <span id="info-email">usuario@ejemplo.com</span>
+        </div>
+        <div class="user-info-detail">
+          <i class="fas fa-calendar-alt"></i> <strong data-translate="profile.regDateLabel">Fecha de registro:</strong> <span id="info-date">01/01/2023</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- My List Section -->
+    <div class="profile-section" id="my-list-section">
+      <div class="content-grid-view" id="profile-my-list-grid">
+        <!-- Content will be dynamically generated -->
+      </div>
+      <div class="load-more-container" style="display: none;">
+        <button id="load-more-my-list" class="load-more-btn" data-translate="page.loadMore">Cargar Más</button>
+      </div>
+    </div>
+
+    <!-- Messages Section -->
+    <div class="profile-section" id="messages-section">
+      <div class="messages-list" id="messages-list">
+        <!-- Messages will be dynamically generated -->
+        <div class="no-messages" id="no-messages">
+          <p data-translate="profile.noMessages">No tienes mensajes nuevos</p>
+        </div>
+      </div>
+
+      <!-- User Message Form (NEW) -->
+      <div class="user-message-form" id="user-message-form">
+        <!-- Changed h3 to h3 for proper hierarchy -->
+        <h3 data-translate="profile.sendMessageToAdmin">Enviar mensaje al administrador</h3>
+        <textarea id="user-message-content" placeholder="Escribe tu mensaje aquí..." data-translate-placeholder="profile.messagePlaceholder"></textarea>
+        <div class="message-limit-info" id="message-limit-info" data-translate="profile.messageLimitInfo">
+          Puedes enviar hasta 2 mensajes por día.
+        </div>
+        <button id="send-user-message-btn" type="button" data-translate="profile.sendMessageButton">Enviar mensaje</button>
+      </div>
+    </div>
+
+    <!-- Settings Section -->
+    <div class="profile-section" id="settings-section">
+      <form id="settings-form">
+        <h3 data-translate="settings.generalSettings">Configuración General</h3>
+        <div class="form-group">
+          <label for="import-language" data-translate="settings.importLanguage">Idioma de Importación de Contenido</label>
+          <select id="import-language" class="form-input">
+            <option value="es-MX">Español (México)</option>
+            <option value="es-ES">Español (España)</option>
+            <option value="en-US">Inglés (USA)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="display-language" data-translate="settings.displayLanguage">Idioma de Visualización</label>
+          <select id="display-language" class="form-input">
+            <option value="es-MX">Español (México)</option>
+            <option value="es-ES">Español (España)</option>
+            <option value="en-US">Inglés (USA)</option>
+          </select>
+        </div>
+
+        <h3 data-translate="settings.heroSlider.title">Hero Slider</h3>
+        <div class="form-group">
+          <label for="hero-slider-posters" data-translate="settings.heroSlider.posterAmount">Cantidad de Posters</label>
+          <input type="number" id="hero-slider-posters" class="form-input" min="1" max="20" value="8">
+        </div>
+        <div class="form-group">
+          <label for="hero-slider-random" data-translate="settings.heroSlider.randomAmount">Cantidad de Posters Aleatorios</label>
+          <input type="number" id="hero-slider-random" class="form-input" min="0" max="20" value="4">
+        </div>
+        <div class="form-group">
+          <label for="hero-slider-recent" data-translate="settings.heroSlider.recentAmount">Cantidad de Posters Recientes</label>
+          <input type="number" id="hero-slider-recent" class="form-input" min="0" max="20" value="4">
+        </div>
+
+        <h3 data-translate="settings.categoryVisibility">Visibilidad de Categorías</h3>
+        <div class="checkbox-group" id="visible-categories">
+          <!-- Las categorías se generarán dinámicamente -->
+        </div>
+
+        <h3 data-translate="settings.platformVisibility">Visibilidad de Plataformas</h3>
+        <div class="checkbox-group" id="visible-platforms">
+          <!-- Las plataformas se generarán dinámicamente -->
+        </div>
+
+        <h3 data-translate="settings.homepagePosters.title">Cantidad de Posters en Secciones de Inicio</h3>
+        <div class="form-group">
+          <label for="posters-en-estreno" data-translate="settings.homepagePosters.inTheaters">En Estreno/Emisión</label>
+          <input type="number" id="posters-en-estreno" class="form-input" min="1" max="50" value="20">
+        </div>
+        <div class="form-group">
+          <label for="posters-recien-agregado" data-translate="settings.homepagePosters.recentlyAdded">Recién Agregado</label>
+          <input type="number" id="posters-recien-agregado" class="form-input" min="1" max="50" value="20">
+        </div>
+        <div class="form-group">
+          <label for="posters-peliculas-populares" data-translate="settings.homepagePosters.popularMovies">Películas Populares</label>
+          <input type="number" id="posters-peliculas-populares" class="form-input" min="1" max="50" value="20">
+        </div>
+        <div class="form-group">
+          <label for="posters-series-populares" data-translate="settings.homepagePosters.popularSeries">Series Populares</label>
+          <input type="number" id="posters-series-populares" class="form-input" min="1" max="50" value="20">
+        </div>
+        <button type="submit" class="auth-btn" data-translate="settings.saveButton">Guardar Configuración</button>
+      </form>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Admin Panel -->
+<div id="admin-panel" class="admin-panel page-view">
+  <div class="main-container">
+    <div class="page-header">
+      <!-- Changed h1 to h2 for proper hierarchy -->
+      <h2 class="page-title" data-translate="admin.title">Panel de Administrador</h2>
+      <button class="back-button" id="back-from-admin" aria-label="Volver a inicio">
+        <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+      </button>
+    </div>
+    <div class="admin-tabs">
+      <div class="admin-tab active" data-tab="users" data-translate="admin.usersTab">Usuarios</div>
+      <div class="admin-tab" data-tab="messages" data-translate="admin.messagesTab">Mensajes</div>
+    </div>
+    <div class="admin-content">
+      <!-- Users Section -->
+      <div class="admin-section active" id="users-section">
+        <div class="user-stats" style="margin-bottom: 20px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px;">
+          <div style="background-color: #252525; padding: 15px; border-radius: 8px; text-align: center; flex: 1; min-width: 150px;">
+            <!-- Changed h4 to h3 for proper hierarchy -->
+            <h3 style="color: var(--secondary-color); margin-bottom: 5px; font-size: 1rem;" data-translate="admin.registeredUsers">Usuarios Registrados</h3>
+            <p id="registered-users-count" style="font-size: 1.5rem; font-weight: bold;">0</p>
+          </div>
+          <div style="background-color: #252525; padding: 15px; border-radius: 8px; text-align: center; flex: 1; min-width: 150px;">
+            <!-- Changed h4 to h3 for proper hierarchy -->
+            <h3 style="color: var(--secondary-color); margin-bottom: 5px; font-size: 1rem;" data-translate="admin.activeUsers">Usuarios Activos (Última Hora)</h3>
+            <p id="active-users-count" style="font-size: 1.5rem; font-weight: bold;">0</p>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <input type="text" id="user-search-input" class="form-input" placeholder="Buscar usuarios por nombre o correo..." data-translate-placeholder="admin.userSearchPlaceholder">
+        </div>
+        <div class="users-grid" id="users-grid">
+          <!-- User cards will be dynamically generated here -->
+        </div>
+        <div class="load-more-container" style="display: none;">
+          <button id="load-more-users" class="load-more-btn" data-translate="page.loadMore">Cargar Más</button>
+        </div>
+      </div>
+      <!-- Messages Section -->
+      <div class="admin-section" id="admin-messages-section" style="display: none;">
+        <form id="admin-message-form" class="admin-form">
+          <div class="form-group">
+            <label data-translate="admin.recipientLabel">Destinatario:</label>
+            <select id="message-recipient" class="form-input">
+              <option value="all" data-translate="admin.allUsersOption">Todos los usuarios</option>
+              <!-- Other options will be dynamically generated -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label data-translate="admin.messageLabel">Mensaje:</label>
+            <textarea id="message-content" class="form-input" placeholder="Escribe tu mensaje aquí..." required></textarea>
+          </div>
+          <button type="submit" class="auth-btn" data-translate="admin.sendMessageButton">Enviar Mensaje</button>
+        </form>
+        <!-- Admin Messages List (NEW) -->
+        <div class="admin-messages-container" style="margin-top: 30px;">
+          <!-- Changed h3 to h3 for proper hierarchy -->
+          <h3 style="margin-bottom: 15px; color: var(--secondary-color);" data-translate="admin.receivedMessages">Mensajes Recibidos</h3>
+          <div class="messages-list" id="admin-messages-list">
+            <!-- Messages will be dynamically generated -->
+            <div class="no-messages" id="admin-no-messages">
+              <p data-translate="admin.noReceivedMessages">No hay mensajes recibidos</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Management Panel (NEW) -->
+<div id="management-panel" class="page-view">
+  <div class="main-container">
+    <div class="page-header">
+      <!-- Changed h1 to h2 for proper hierarchy -->
+      <h2 class="page-title" data-translate="management.title">Gestión de Contenido</h2>
+      <button class="back-button" id="back-from-management" aria-label="Volver a inicio">
+        <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+      </button>
+    </div>
+
+    <div class="admin-tabs" id="management-tabs">
+      <div class="admin-tab active" data-tab="content" data-translate="management.addContentTab">Agregar Contenido</div>
+      <div class="admin-tab" data-tab="manage-content" data-translate="management.manageContentTab">Gestionar Contenido</div>
+    </div>
+
+    <div class="admin-content">
+      <!-- Content Section -->
+      <div class="admin-section active" id="content-section">
+        <!-- Changed h3 to h3 for proper hierarchy -->
+        <h3 data-translate="management.addFromTMDb">Agregar Contenido desde TMDB</h3>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <input type="text" id="tmdb-search-input" class="form-input" placeholder="Buscar película o serie por nombre..." data-translate-placeholder="management.searchPlaceholder">
+          <button id="tmdb-search-btn" class="auth-btn" style="margin-top: 10px;" data-translate="management.searchButton">Buscar</button>
+        </div>
+        <div id="tmdb-search-results" class="content-grid-view">
+          <!-- TMDB search results will be dynamically generated here -->
+        </div>
+        <hr style="margin: 20px 0;">
+        <div>
+          <!-- Changed h3 to h3 for proper hierarchy -->
+          <h3 data-translate="management.populateDb">Poblar Base de Datos</h3>
+          <p data-translate="management.populateDbInfo">Usa este botón para agregar una selección curada de contenido popular a la base de datos. Esto es útil para la configuración inicial.</p>
+          <button id="seed-database-btn" class="auth-btn" style="background-color: var(--accent-color);" data-translate="management.populateDbButton">Poblar con Contenido Popular</button>
+        </div>
+      </div>
+      <!-- Manage Content Section -->
+      <div class="admin-section" id="manage-content-section" style="display: none;">
+        <!-- Changed h3 to h3 for proper hierarchy -->
+        <h3 data-translate="management.manageImported">Gestionar Contenido Importado</h3>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <input type="text" id="manage-content-search-input" class="form-input" placeholder="Buscar contenido por título..." data-translate-placeholder="management.manageSearchPlaceholder">
+        </div>
+        <div id="manage-content-grid" class="content-grid-view">
+          <!-- Manageable content will be dynamically generated here -->
+        </div>
+        <div class="load-more-container" style="display: none;">
+          <button id="load-more-manage-content" class="load-more-btn" data-translate="page.loadMore">Cargar Más</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Genre Results View -->
+<div id="genre-results-view" class="page-view">
+<div class="main-container">
+  <div class="page-header">
+    <!-- Changed h1 to h2 for proper hierarchy -->
+    <h2 class="page-title" id="genre-title" data-translate="page.genreResultsTitle">Resultados por Género</h2>
+    <button class="back-button" id="back-from-genre" aria-label="Volver a inicio">
+      <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+    </button>
+  </div>
+  <div class="content-grid-view" id="genre-results-grid">
+    <!-- Content will be dynamically generated -->
+  </div>
+  <div class="load-more-container" style="display: none;">
+    <button id="load-more-genre" class="load-more-btn" data-translate="page.loadMore">Cargar Más</button>
+  </div>
+</div>
+</div>
+
+<!-- Search Results View -->
+<div id="search-results-view" class="page-view">
+<div class="main-container">
+  <div class="page-header">
+    <!-- Changed h1 to h2 for proper hierarchy -->
+    <h2 class="page-title" id="search-results-title" data-translate="page.searchResultsTitle">Resultados de búsqueda</h2>
+    <button class="back-button" id="back-from-search" aria-label="Volver a inicio">
+      <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+    </button>
+  </div>
+  <div class="content-grid-view" id="search-results-grid">
+    <!-- Content will be-dynamically generated -->
+  </div>
+  <div class="load-more-container" style="display: none;">
+    <button id="load-more-search" class="load-more-btn" data-translate="page.loadMore">Cargar Más</button>
+  </div>
+</div>
+</div>
+
+<!-- NEW: Stats View -->
+<div id="stats-view" class="page-view">
+  <div class="main-container">
+    <div class="page-header">
+      <!-- Changed h1 to h2 for proper hierarchy -->
+      <h2 class="page-title" id="stats-title" data-translate="page.statsTitle">Estadísticas de Clicks</h2>
+      <button class="back-button" id="back-from-stats" aria-label="Volver a inicio">
+        <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+      </button>
+    </div>
+    <div class="stats-grid-view" id="stats-grid">
+      <!-- Stats content will be dynamically generated here -->
+    </div>
+  </div>
+</div>
+
+<!-- NEW: Connected Users View -->
+<div id="connected-users-view" class="page-view">
+  <div class="main-container">
+    <div class="page-header">
+      <!-- Changed h1 to h2 for proper hierarchy -->
+      <h2 class="page-title" data-translate="page.connectedUsersTitle">Usuarios Conectados</h2>
+      <button class="back-button" id="back-from-connected-users" aria-label="Volver a inicio">
+        <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+      </button>
+    </div>
+    <div class="users-grid" id="connected-users-grid">
+      <!-- Connected user cards will be dynamically generated here -->
+    </div>
+  </div>
+</div>
+
+<!-- Back to top button -->
+<button id="back-to-top" class="back-to-top">
+<i class="fas fa-arrow-up"></i>
+</button>
+
+<!-- Welcome popup -->
+<div class="welcome-popup" id="welcome-popup" style="display: none;">
+<div class="popup-content">
+  <div class="popup-header">
+    <!-- Changed h2 to h2 for proper hierarchy -->
+    <h2 class="popup-title" data-translate="welcome.title">
+      Bienvenido a <span>Stream</span><span>Fusion</span>
+    </h2>
+    <p class="popup-subtitle" data-translate="welcome.subtitle">Tu plataforma de entretenimiento streaming</p>
+  </div>
+  <div class="popup-body">
+    <div class="popup-section">
+      <p class="popup-text" data-translate="welcome.intro">StreamFusion es una app Gratuita de Entretenimiento Streaming que te permite disfrutar de todo tu contenido favorito en un solo lugar.</p>
+    </div>
+    <div class="popup-section">
+      <!-- Changed h3 to h3 for proper hierarchy -->
+      <h3 class="popup-section-title" data-translate="welcome.importantTitle"></h3>
+      <p class="popup-text" data-translate="welcome.importantText"></p>
+    </div>
+    <div class="popup-section">
+      <p class="popup-text" data-translate="welcome.enjoy">No siendo más disfruta del contenido. 🎉</p>
+    </div>
+  </div>
+  <div class="popup-footer">
+    <div class="dont-show-again">
+      <label class="checkbox-container">
+        <input type="checkbox" id="dont-show-again" class="custom-checkbox">
+        <span class="checkmark"></span>
+      </label>
+      <span data-translate="welcome.dontShowAgain">No mostrar más</span>
+    </div>
+    <button id="close-popup" class="close-popup-btn" data-translate="welcome.startButton">Comenzar a explorar</button>
+  </div>
+</div>
+</div>
+
+<!-- Movie Details Modal Container -->
+<div id="movie-details-modal-container"></div>
+
+<!-- Watch Modal Container -->
+<div id="watch-modal-container"></div>
+
+<!-- Trailer Modal Container -->
+<div id="trailer-modal-container"></div>
+
+<!-- Edit User Modal -->
+<div id="edit-user-modal" style="display: none;">
+<div class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <!-- Changed h3 to h3 for proper hierarchy -->
+      <h3 class="modal-title" data-translate="modal.editUserTitle">Editar Usuario</h3>
+      <span class="modal-close" id="close-edit-modal">×</span>
+    </div>
+    <div class="modal-body">
+      <form id="edit-user-form" class="modal-form">
+        <div class="form-group">
+          <label data-translate="modal.nameLabel">Nombre:</label>
+          <input type="text" id="edit-name" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label data-translate="modal.emailLabel">Correo electrónico:</label>
+          <input type="email" id="edit-email" class="form-input" required>
+        </div>
+        <input type="hidden" id="edit-user-id">
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-secondary" id="cancel-edit" data-translate="modal.cancelButton">Cancelar</button>
+      <button class="modal-btn modal-btn-primary" id="save-edit" data-translate="modal.saveButton">Guardar</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Send Message Modal -->
+<div id="send-message-modal" style="display: none;">
+<div class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <!-- Changed h3 to h3 for proper hierarchy -->
+      <h3 class="modal-title" data-translate="modal.sendMessageTitle">Enviar Mensaje</h3>
+      <span class="modal-close" id="close-message-modal">×</span>
+    </div>
+    <div class="modal-body">
+      <form id="send-message-form" class="modal-form">
+        <div class="form-group">
+          <label data-translate="modal.toLabel">Para:</label>
+          <input type="text" id="message-to" class="form-input" readonly>
+        </div>
+        <div class="form-group">
+          <label data-translate="modal.messageLabel">Mensaje:</label>
+          <textarea id="individual-message-content" class="form-input" placeholder="Escribe tu mensaje aquí..." required></textarea>
+        </div>
+        <input type="hidden" id="message-user-id">
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-secondary" id="cancel-message" data-translate="modal.cancelButton">Cancelar</button>
+      <button class="modal-btn modal-btn-primary" id="send-message" data-translate="modal.sendButton">Enviar</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-confirmation-modal" style="display: none;">
+<div class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <!-- Changed h3 to h3 for proper hierarchy -->
+      <h3 class="modal-title" data-translate="modal.deleteConfirmTitle">Confirmar Eliminación</h3>
+      <span class="modal-close" id="close-delete-modal">×</span>
+    </div>
+    <div class="modal-body">
+      <p data-translate="modal.deleteUserConfirmText">¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.</p>
+      <input type="hidden" id="delete-user-id">
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-secondary" id="cancel-delete" data-translate="modal.cancelButton">Cancelar</button>
+      <button class="modal-btn modal-btn-primary" id="confirm-delete" data-translate="modal.deleteButton">Eliminar</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Delete Message Confirmation Modal (NEW) -->
+<div id="delete-message-modal" style="display: none;">
+<div class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <!-- Changed h3 to h3 for proper hierarchy -->
+      <h3 class="modal-title" data-translate="modal.deleteConfirmTitle">Confirmar Eliminación</h3>
+      <span class="modal-close" id="close-delete-message-modal">×</span>
+    </div>
+    <div class="modal-body">
+      <p data-translate="modal.deleteMessageConfirmText">¿Estás seguro de que deseas eliminar este mensaje? Esta acción no se puede deshacer.</p>
+      <input type="hidden" id="delete-message-id">
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-secondary" id="cancel-delete-message" data-translate="modal.cancelButton">Cancelar</button>
+      <button class="modal-btn modal-btn-primary" id="confirm-delete-message" data-translate="modal.deleteButton">Eliminar</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Import Options Modal -->
+<div id="import-options-modal" style="display: none;">
+  <div class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <!-- Changed h3 to h3 for proper hierarchy -->
+        <h3 class="modal-title" id="import-options-title" data-translate="modal.importOptionsTitle">Opciones de Importación</h3>
+        <span class="modal-close" id="close-import-options-modal">×</span>
+      </div>
+      <div class="modal-body">
+        <form id="import-options-form" class="modal-form">
+          <input type="hidden" id="import-item-id">
+          <input type="hidden" id="import-item-type">
+          <div class="form-group">
+            <label data-translate="modal.mainSectionsLabel">Secciones Principales (dónde aparecerá el contenido):</label>
+            <div class="checkbox-group" id="import-main-sections">
+                <label><input type="checkbox" name="main-section" value="movies"> <span data-translate="modal.moviesSection">Películas</span></label>
+                <label><input type="checkbox" name="main-section" value="series"> <span data-translate="modal.seriesSection">Series</span></label>
+                <label><input type="checkbox" name="main-section" value="animes"> <span data-translate="modal.animesSection">Animes</span></label>
+                <label><input type="checkbox" name="main-section" value="doramas"> <span data-translate="modal.doramasSection">Doramas</span></label>
+            </div>
+          </div>
+          <div id="home-options-container" class="form-group">
+            <label data-translate="modal.homeOptionsLabel">Opciones de la Página de Inicio:</label>
+            <div class="checkbox-group">
+              <label><input type="checkbox" name="home-section" value="slider"> <span data-translate="modal.mainSliderSection">Slider Principal</span></label>
+              <label><input type="checkbox" name="home-section" value="estreno"> <span data-translate="modal.inTheatersSection">En Estreno/Emisión</span></label>
+              <label><input type="checkbox" name="home-section" value="agregado"> <span data-translate="modal.recentlyAddedSection">Recién Agregado</span></label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label data-translate="modal.platformsLabel">Plataformas (si aplica):</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" name="platform-section" value="netflix"> Netflix</label>
+                <label><input type="checkbox" name="platform-section" value="disney"> Disney+</label>
+                <label><input type="checkbox" name="platform-section" value="hbo"> HBO Max</label>
+                <label><input type="checkbox" name="platform-section" value="prime"> Prime Video</label>
+                <label><input type="checkbox" name="platform-section" value="paramount"> Paramount+</label>
+            </div>
+          </div>
+          <div id="next-episode-note-group" class="form-group" style="display: none;">
+            <label for="next-episode-note">Nota del Próximo Episodio:</label>
+            <textarea id="next-episode-note" class="form-input" placeholder="Ej: Próximo episodio el 25 de Diciembre"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-secondary" id="cancel-import" data-translate="modal.cancelButton">Cancelar</button>
+        <button class="modal-btn modal-btn-primary" id="confirm-import" data-translate="modal.importButton">Importar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Video URL Modal (NEW) -->
+<div id="video-url-modal" style="display: none;">
+  <div class="modal-overlay">
+    <div class="modal-container" style="max-width: 800px;">
+      <div class="modal-header">
+        <!-- Changed h3 to h3 for proper hierarchy -->
+        <h3 class="modal-title" id="video-url-modal-title" data-translate="modal.addVideoUrlsTitle">Agregar URLs de Video</h3>
+        <span class="modal-close" id="close-video-url-modal">×</span>
+      </div>
+      <div class="modal-body" id="video-url-modal-body" style="max-height: 70vh; overflow-y: auto;">
+        <!-- Dynamic form will be injected here -->
+      </div>
+      <div class="modal-footer">
+        <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+        <button class="modal-btn" id="import-csv-btn" style="display: none; background-color: #4CAF50;" data-translate="modal.importCsvButton">Importar CSV</button>
+        <button class="modal-btn modal-btn-secondary" id="cancel-video-url" data-translate="modal.cancelButton">Cancelar</button>
+        <button class="modal-btn modal-btn-primary" id="save-video-urls" data-translate="modal.saveAndContinueButton">Guardar y Continuar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Content Confirmation Modal -->
+<div id="delete-content-confirmation-modal" style="display: none;">
+<div class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <!-- Changed h3 to h3 for proper hierarchy -->
+      <h3 class="modal-title" data-translate="modal.deleteContentConfirmTitle">Confirmar Eliminación de Contenido</h3>
+      <span class="modal-close" id="close-delete-content-modal">×</span>
+    </div>
+    <div class="modal-body">
+      <p data-translate="modal.deleteContentConfirmText">¿Estás seguro de que deseas eliminar este contenido? Esta acción no se puede deshacer.</p>
+      <input type="hidden" id="delete-content-id">
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-secondary" id="cancel-delete-content" data-translate="modal.cancelButton">Cancelar</button>
+      <button class="modal-btn modal-btn-primary" id="confirm-delete-content" data-translate="modal.deleteButton">Eliminar</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Netflix View -->
+<div id="netflix-view" class="page-view">
+  <div class="main-container">
+    <div class="page-header">
+      <!-- Changed h1 to h2 for proper hierarchy -->
+      <h2 class="page-title">Netflix</h2>
+      <button class="back-button" id="back-from-netflix" aria-label="Volver a inicio">
+        <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+      </button>
+    </div>
+    <div class="content-grid-view" id="netflix-grid">
+      <!-- Content will be dynamically generated -->
+    </div>
+  </div>
+</div>
+
+<!-- Disney View -->
+<div id="disney-view" class="page-view">
+  <div class="main-container">
+    <div class="page-header">
+      <!-- Changed h1 to h2 for proper hierarchy -->
+      <h2 class="page-title">Disney+</h2>
+      <button class="back-button" id="back-from-disney" aria-label="Volver a inicio">
+        <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+      </button>
+    </div>
+    <div class="content-grid-view" id="disney-grid">
+      <!-- Content will be dynamically generated -->
+    </div>
+  </div>
+</div>
+
+<!-- HBO View -->
+<div id="hbo-view" class="page-view">
+  <div class="main-container">
+    <div class="page-header">
+      <!-- Changed h1 to h2 for proper hierarchy -->
+      <h2 class="page-title">HBO Max</h2>
+      <button class="back-button" id="back-from-hbo" aria-label="Volver a inicio">
+        <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+      </button>
+    </div>
+    <div class="content-grid-view" id="hbo-grid">
+      <!-- Content will be dynamically generated -->
+    </div>
+  </div>
+</div>
+
+<!-- Prime View -->
+<div id="prime-view" class="page-view">
+  <div class="main-container">
+    <div class="page-header">
+      <!-- Changed h1 to h2 for proper hierarchy -->
+      <h2 class="page-title">Prime Video</h2>
+      <button class="back-button" id="back-from-prime" aria-label="Volver a inicio">
+        <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+      </button>
+    </div>
+    <div class="content-grid-view" id="prime-grid">
+      <!-- Content will be dynamically generated -->
+    </div>
+  </div>
+</div>
+
+<!-- Paramount View -->
+<div id="paramount-view" class="page-view">
+  <div class="main-container">
+    <div class="page-header">
+      <!-- Changed h1 to h2 for proper hierarchy -->
+      <h2 class="page-title">Paramount+</h2>
+      <button class="back-button" id="back-from-paramount" aria-label="Volver a inicio">
+        <i class="fas fa-arrow-left"></i> <span data-translate="page.backButton">Volver</span>
+      </button>
+    </div>
+    <div class="content-grid-view" id="paramount-grid">
+      <!-- Content will be dynamically generated -->
+    </div>
+  </div>
+</div>
+
+<!-- Donation Modal -->
+<div id="donation-modal" style="display: none;">
+  <div class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <!-- Changed h3 to h3 for proper hierarchy -->
+        <h3 class="modal-title" data-translate="modal.donationTitle">Apoya nuestro proyecto</h3>
+        <span class="modal-close" id="close-donation-modal">×</span>
+      </div>
+      <div class="modal-body">
+        <div class="donation-content">
+          <p data-translate="modal.donationText">Tu donación nos ayuda a mantener StreamFusion y seguir ofreciendo contenido de calidad sin costo.</p>
+          <div class="paypal-logo-container">
+            <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_111x69.jpg" alt="PayPal" class="paypal-logo">
+          </div>
+          <p>Cualquier cantidad es bienvenida y nos motiva a seguir mejorando.</p>
+          <ul class="donation-benefits">
+            <li><i class="fas fa-check"></i> <span data-translate="modal.donationBenefit1">Ayudas a mantener el servicio sin anuncios</span></li>
+            <li><i class="fas fa-check"></i> <span data-translate="modal.donationBenefit2">Contribuyes al desarrollo de nuevas funciones</span></li>
+            <li><i class="fas fa-check"></i> <span data-translate="modal.donationBenefit3">Apoyas a nuestro equipo de contenido</span></li>
+          </ul>
+          <button id="paypal-donate-btn" class="paypal-donate-btn">
+            <img src="https://www.paypalobjects.com/digitalassets/c/website/marketing/apac/C2/logos-buttons/optimize/44_Yellow_PayPal_Pill_Button.png" alt="Donar con PayPal">
+          </button>
+          <p class="donation-note" data-translate="modal.donationNote">Serás redirigido al sitio seguro de PayPal para completar tu donación.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-secondary" id="cancel-donation" data-translate="modal.closeButton">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Mensajes Genérico -->
+<div id="message-modal" style="display: none;">
+  <div class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <!-- Changed h3 to h3 for proper hierarchy -->
+        <h3 class="modal-title" id="message-modal-title"></h3>
+        <span class="modal-close" id="close-message-modal-btn">×</span>
+      </div>
+      <div class="modal-body">
+        <p id="message-modal-content"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-primary" id="message-modal-ok-btn" data-translate="modal.acceptButton">Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Floating Donation Button -->
+<div id="floating-donation-btn" class="floating-donation-btn">
+    <i class="fa-brands fa-paypal"></i>
+</div>
+
+<!-- Nuevo menú de navegación inferior-->
+<div class="bottom-nav">
+    <a href="#" class="bottom-nav-item active" data-section="home">
+        <i class="fas fa-home"></i>
+        <span data-translate="bottomNav.home">Inicio</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-section="movies">
+        <i class="fas fa-film"></i>
+        <span data-translate="bottomNav.movies">Películas</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-section="series">
+        <i class="fa-solid fa-layer-group"></i>
+        <span data-translate="bottomNav.series">Series</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-section="animes">
+        <i class="fa-solid fa-a"></i>
+        <span data-translate="bottomNav.animes">Animes</span>
+    </a>
+    <a href="go:TV" target="_blank" class="bottom-nav-item-tv">
+        <i class="fas fa-tv"></i>
+        <span data-translate="bottomNav.tv">TV</span>
+    </a>
+</div>
+<script type="module" src="script.js"></script>
+</body>
+</html>
